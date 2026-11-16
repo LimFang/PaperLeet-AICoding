@@ -3204,8 +3204,8 @@ html { scrollbar-gutter: stable; }
 .library-title { display: flex; align-items: center; gap: 10px; }
 .clear-collection { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface2); color: var(--muted); }
 .clear-collection:hover { background: var(--surface3); color: var(--text); }
-.library-heading h1 { font-size: 22px; font-weight: 600; letter-spacing: -.4px; }
-.library-heading h1 > span { color: var(--muted); font-size: 14px; font-weight: 400; margin-left: 8px; }
+.library-heading :is(h1, h2) { font-size: 22px; font-weight: 600; letter-spacing: -.4px; }
+.library-heading :is(h1, h2) > span { color: var(--muted); font-size: 14px; font-weight: 400; margin-left: 8px; }
 .library-progress { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; }
 .library-progress b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
 .paper-library .paper-categories { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
@@ -3412,4 +3412,64 @@ html { scrollbar-gutter: stable; }
 @media (max-width: 520px) {
   .repository-link { width: 28px; height: 30px; }
   .editor-bottom .editor-run-status { font-size: 11px; }
+}
+
+/* Role-oriented AI Coding homepage. */
+.agent-hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: center; padding: 38px 0 46px; border-bottom: 1px solid var(--line); }
+.agent-eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 18px; color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.2px; line-height: 1.7; }
+.agent-eyebrow > span { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--accent); }
+.agent-hero h1 { margin: 0; font-size: clamp(30px, 3.2vw, 46px); font-weight: 650; line-height: 1.35; letter-spacing: -1.2px; }
+.agent-hero h1 > span { color: var(--accent); }
+.agent-hero-description { max-width: 600px; margin: 22px 0; color: var(--muted); font-size: 15px; line-height: 1.9; }
+.agent-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.agent-hero-actions .button { min-height: 42px; font-size: 13px; }
+.agent-availability { margin: 15px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.agent-workflow { min-width: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; box-shadow: 0 12px 36px #00000008; }
+.agent-workflow-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 17px 20px; border-bottom: 1px solid var(--line); font-size: 11px; font-weight: 600; letter-spacing: .4px; }
+.agent-workflow-heading > svg { color: var(--accent); }
+.agent-outline-label { display: inline-block; width: fit-content; padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: 10px; font-weight: 500; white-space: nowrap; }
+.agent-workflow-heading .agent-outline-label { margin-left: auto; }
+.agent-workflow-step { display: flex; gap: 16px; padding: 15px 22px; }
+.agent-workflow-step > span { display: grid; place-items: center; align-self: flex-start; flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--line); font: 11px var(--font-mono); color: var(--accent); background: var(--surface2); }
+.agent-workflow-step strong { font-size: 13px; font-weight: 600; }
+.agent-workflow-step p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.agent-workflow-footer { display: flex; align-items: center; gap: 9px; padding: 13px 20px; border-top: 1px solid var(--line); color: var(--muted); background: var(--surface2); font-size: 11px; line-height: 1.6; }
+.agent-paths { padding: 32px 0 38px; scroll-margin-top: 80px; }
+.agent-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.agent-section-heading .agent-eyebrow { margin-bottom: 8px; font-size: 10px; }
+.agent-section-heading h2 { margin: 0; font-size: 23px; font-weight: 600; letter-spacing: -.5px; }
+.agent-section-note { margin: 12px 0 20px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.agent-track-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+.agent-track { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.agent-track > summary { display: block; padding: 22px; cursor: pointer; list-style: none; }
+.agent-track > summary::-webkit-details-marker { display: none; }
+.agent-track > summary:hover { background: var(--surface2); }
+.agent-track-meta { display: flex; align-items: center; gap: 10px; color: var(--accent); }
+.agent-track-meta > span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
+.agent-track h3 { margin: 18px 0 10px; font-size: 19px; font-weight: 600; line-height: 1.4; }
+.agent-track summary p { margin: 0; min-height: 70px; font-size: 13px; line-height: 1.8; color: var(--muted); }
+.agent-track-toggle { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; font-size: 12px; color: var(--accent); }
+.agent-track[open] .agent-track-toggle svg { transform: rotate(90deg); }
+.agent-track-body { padding: 0 22px 22px; border-top: 1px solid var(--line); }
+.agent-track-body ol { padding-left: 19px; margin: 18px 0; font-size: 13px; line-height: 2.2; }
+.agent-track-body > p { font-size: 12px; line-height: 1.8; color: var(--muted); }
+.agent-track-body a { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; color: var(--accent); font-size: 12px; }
+#algorithm-foundations { scroll-margin-top: 80px; padding-top: 26px; border-top: 1px solid var(--line); }
+@media (max-width: 1000px) {
+  .agent-hero { gap: 26px; }
+  .agent-track-grid { gap: 12px; }
+  .agent-track > summary { padding: 18px; }
+  .agent-track h3 { font-size: 17px; }
+}
+@media (max-width: 720px) {
+  .agent-hero { grid-template-columns: 1fr; padding: 16px 0 28px; }
+  .agent-hero h1 { font-size: 33px; }
+  .agent-hero-description { font-size: 14px; }
+  .agent-eyebrow { font-size: 9px; letter-spacing: .7px; }
+  .agent-track-grid { grid-template-columns: 1fr; }
+  .agent-track summary p { min-height: 0; }
+  .agent-section-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .agent-section-heading h2 { font-size: 21px; }
+  .agent-track h3 { font-size: 19px; }
+  .agent-hero-actions .button { flex: 1 1 180px; justify-content: center; }
 }

@@ -18,6 +18,6 @@ export default function Brand() {
   return <a href="/" className="brand" aria-label={t("PaperLeet 首页", "PaperLeet home")}>
     <BrandMark />
     <span className="brand-wordmark">Paper<span>Leet</span></span>
-    <small className="offline-label">{t("本机版", "Offline")}</small>
+    <small className="offline-label">AI Coding</small>
   </a>;
 }

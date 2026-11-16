@@ -10,6 +10,7 @@ import type { Category, Paper, Problem, Saved } from "./types";
 import { paperCollections, papersInCollection } from "./paperCollections";
 import { eligibleUnattemptedProblems, pickRandomUnattemptedProblem } from "./randomProblem";
 import CollectionArtwork from "./CollectionArtwork";
+import AgentHome from "./AgentHome";
 
 type Practice = { problems: Problem[]; saved: Record<string, Saved> };
 export function paperModules(paper: Paper, problems: Problem[]) {
@@ -109,9 +110,10 @@ export function PaperLibrary({ papers, categories, problems, saved, progressRead
   function clear() { setQuery(""); setDiff("all"); setState("all"); setTag("all"); setCategory("all"); }
   const hasFilters = !!query || diff !== "all" || state !== "all" || tag !== "all" || category !== "all";
   return <main className="home paper-library">
-    <section className="featured-collections" aria-label={t("精选合集", "Featured collections")}>
+    <AgentHome />
+    <section id="algorithm-foundations" className="featured-collections" aria-label={t("算法基础合集", "Algorithm foundation collections")}>
       <div className="collections-heading">
-        <h2>{t("精选合集", "Featured collections")}</h2>
+        <h2>{t("算法基础 · 现有练习合集", "Algorithm foundations · Available collections")}</h2>
         <div className="collection-controls">
           <button aria-label={t("上一组合集", "Previous collections")} disabled={!railEdges.previous} onClick={() => scrollCollections(-1)}><ChevronLeft size={18} /></button>
           <button aria-label={t("下一组合集", "Next collections")} disabled={!railEdges.next} onClick={() => scrollCollections(1)}><ChevronRight size={18} /></button>
@@ -136,10 +138,10 @@ export function PaperLibrary({ papers, categories, problems, saved, progressRead
     </section>
     <div className="library-main">
     <header className="library-heading">
-      <div className="library-title"><h1>{t("论文题库", "Papers")} <span>{listedPapers.length}</span></h1></div>
+      <div className="library-title"><h2>{t("算法基础题库", "Algorithm foundations")} <span>{listedPapers.length}</span></h2></div>
       <div className="library-progress"><CheckCircle2 size={16} /><span>{t("已通过模块", "Modules solved")}</span><b>{solvedModules} / {listedModules.length}</b></div>
     </header>
-    <p className="offline-library-note">{t("用自己的 CPU 练习。草稿与学习进度自动保存在此浏览器，运行记录另存本机。", "Practice on your own CPU. Drafts and progress stay in this browser, with run files saved on this computer.")}</p>
+    <p className="offline-library-note">{t("从现有论文题补齐模型、检索与后训练基础，使用本机 CPU 验证实现。草稿与进度保存在此浏览器，运行记录另存本机。", "Build model, retrieval and post-training foundations with existing paper exercises, verified on your CPU. Drafts and progress stay in this browser; run files are saved locally.")}</p>
     <div className="paper-categories" aria-label={t("论文分类", "Paper categories")}>
       <button aria-pressed={category === "all"} onClick={() => { setCategory("all"); setTag("all"); }}><Library size={16} />{t("全部", "All")}<span>{listedPapers.length}</span></button>
       {visibleCategories.map((item) => {

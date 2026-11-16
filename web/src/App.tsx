@@ -361,8 +361,8 @@ function Workspace() {
   const selectedCollection = paperCollections.find((collection) => collection.id === collectionId);
   useEffect(() => {
     document.title = selectedCollection
-      ? `${t(selectedCollection.name, selectedCollection.name_en)} - PaperLeet Offline`
-      : collectionId !== undefined ? `${t("合集未找到", "Collection not found")} - PaperLeet Offline` : "PaperLeet Offline";
+      ? `${t(selectedCollection.name, selectedCollection.name_en)} - PaperLeet AI Coding`
+      : collectionId !== undefined ? `${t("合集未找到", "Collection not found")} - PaperLeet AI Coding` : "PaperLeet · AI Coding & Agents";
   }, [collectionId, selectedCollection, locale]);
   const collectionModules = selectedCollection
     ? papersInCollection(papers, selectedCollection).flatMap((paper) => paperModules(paper, problems))
@@ -511,7 +511,7 @@ function Workspace() {
               className={!problem ? "active" : ""}
               href="/"
             >
-              {t("论文题库", "Papers")}
+              {t("AI Coding 练习", "AI Coding practice")}
             </a>
             <button
               className={`continue-link ${problem ? "active" : ""}`}
