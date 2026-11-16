@@ -2,7 +2,12 @@
   "repository": "LimFang/PaperLeet-AICoding",
   "metric": "current_stargazers",
   "label": "GitHub stars",
-  "updated_at": null,
-  "stale": true,
-  "points": []
+  "updated_at": "2026-11-16T14:41:56Z",
+  "stale": false,
+  "points": [
+    {
+      "date": "2026-11-16",
+      "value": 0
+    }
+  ]
 }
