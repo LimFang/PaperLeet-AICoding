@@ -1,4 +1,4 @@
-name: Offline edition checks
+name: AI Coding checks
 on:
   push:
     branches: [main]
@@ -33,9 +33,9 @@ jobs:
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -e .
           npm --prefix web ci
-      - name: Verify the offline edition
+      - name: Verify framework, frontend and algorithm exercises
         run: make ci PYTHON=python
       - uses: actions/upload-artifact@v4
         with:
-          name: paperleet-offline-web
+          name: paperleet-ai-coding-web
           path: web/dist/

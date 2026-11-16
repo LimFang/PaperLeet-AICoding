@@ -1,4 +1,4 @@
-"""Offline Star History: real aggregate data, privacy, and honest failure states."""
+"""AI Coding Star History: real aggregate data, privacy, and honest failure states."""
 from datetime import datetime, timezone
 import importlib.util
 import json
@@ -33,7 +33,7 @@ def test_stars_paginate_deduplicate_and_export_no_github_identities(metrics, mon
     result = metrics.fetch_stars(metrics.REPOSITORY, NOW, "fixture-token")
     assert result["points"] == [{"date": "2026-10-13", "value": 100}, {"date": "2026-10-14", "value": 101}]
     assert len(requests) == 2
-    assert requests[0][0] == "https://api.github.com/repos/Hongyang-Du/PaperLeet/stargazers?per_page=100&page=1"
+    assert requests[0][0] == "https://api.github.com/repos/LimFang/PaperLeet-AICoding/stargazers?per_page=100&page=1"
     assert requests[0][1]["Accept"] == "application/vnd.github.star+json"
     assert requests[0][1]["Authorization"] == "Bearer fixture-token"
     assert "must-not-export" not in json.dumps(result)
@@ -61,7 +61,7 @@ def test_repository_is_fixed_before_any_request_or_output(metrics, monkeypatch, 
     def unexpected(*_):
         pytest.fail("A different repository must not be queried")
     monkeypatch.setattr(metrics, "fetch_json", unexpected)
-    with pytest.raises(ValueError, match="offline"):
+    with pytest.raises(ValueError, match="AI Coding"):
         metrics.fetch_stars("example/other", NOW)
     with pytest.raises(SystemExit) as error:
         metrics.main(["--repo", "example/other", "--output-dir", str(tmp_path / "unexpected")])
@@ -136,8 +136,11 @@ def test_failure_after_page_one_preserves_prior_snapshot(metrics, monkeypatch, t
     assert json.loads((tmp_path / "stars.json").read_text()) == {**prior, "stale": True}
 
 
-@pytest.mark.parametrize("cache", [None, "malformed", {"repository": "another/repo"}])
+@pytest.mark.parametrize("cache", [None, "malformed", {"repository": "another/repo"}, "upstream"])
 def test_missing_or_invalid_source_produces_unknown_not_fake_zero(metrics, tmp_path, cache):
+    if cache == "upstream":
+        cache = {**metrics.snapshot("stars", [{"date": "2026-10-13", "value": 248}], NOW),
+                 "repository": "Hongyang-Du/PaperLeet"}
     if cache is not None:
         (tmp_path / "stars.json").write_text(json.dumps(cache))
     def fail():
@@ -172,7 +175,7 @@ def test_charts_are_valid_svg_for_empty_single_point_and_history(metrics, dark, 
     assert "nan" not in chart.lower()
     assert "Updated 2026-10-14 15:00 UTC" in chart
     assert "2026-10-10" not in chart  # No made-up origin day.
-    assert "Hongyang-Du/PaperLeet" in chart
+    assert "LimFang/PaperLeet-AICoding" in chart
     assert "SIL OPEN FONT LICENSE" in chart
     assert "<use href=\"#pl-hand-" in chart
 

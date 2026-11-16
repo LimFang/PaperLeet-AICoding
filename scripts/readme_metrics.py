@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the offline repository Star History using only the standard library.
+"""Render this AI Coding fork's Star History using only the standard library.
 
 Only aggregate dates/counts are written to disk. GitHub identities and API tokens
 are never included in snapshots. An unavailable upstream preserves the last
@@ -25,7 +25,7 @@ except ModuleNotFoundError:
 
 
 UTC = timezone.utc
-REPOSITORY = "Hongyang-Du/PaperLeet"
+REPOSITORY = "LimFang/PaperLeet-AICoding"
 METRICS = {
     "stars": ("current_stargazers", "GitHub stars", "Current stargazers by star date", "#ee4934", "#ff745f"),
 }
@@ -96,7 +96,7 @@ def fetch_json(url: str, headers: dict | None = None) -> object:
 
 def fetch_stars(repo: str, now: datetime, token: str | None = None) -> dict:
     if repo != REPOSITORY:
-        raise ValueError("Only the offline PaperLeet repository is supported")
+        raise ValueError("Only the AI Coding repository is supported")
     now = now.astimezone(UTC)
     headers = {"Accept": "application/vnd.github.star+json", "X-GitHub-Api-Version": "2022-11-28"}
     if token:
@@ -283,7 +283,7 @@ def update_metric(key: str, loader, output_dir: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo", default=REPOSITORY, choices=[REPOSITORY], help="Offline repository (fixed to match the chart legend)")
+    parser.add_argument("--repo", default=REPOSITORY, choices=[REPOSITORY], help="AI Coding repository (fixed to match the chart legend)")
     parser.add_argument("--output-dir", type=Path, default=Path("docs/metrics"))
     args = parser.parse_args(argv)
     args.output_dir.mkdir(parents=True, exist_ok=True)

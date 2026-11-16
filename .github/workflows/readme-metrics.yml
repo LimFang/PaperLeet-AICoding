@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   refresh:
-    if: github.repository == 'Hongyang-Du/PaperLeet' && github.ref == 'refs/heads/main'
+    if: github.repository == 'LimFang/PaperLeet-AICoding' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Refresh the offline repository's star chart
+      - name: Refresh this fork's star chart
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/readme_metrics.py --output-dir docs/metrics
@@ -48,7 +48,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'docs: refresh offline star history'
+          git commit -m 'docs: refresh AI Coding star history'
           gh auth setup-git
           git pull --rebase origin main
           git push origin HEAD:main

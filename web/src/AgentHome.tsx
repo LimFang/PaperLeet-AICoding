@@ -44,7 +44,7 @@ export default function AgentHome() {
     <section className="agent-hero" aria-labelledby="agent-home-title">
       <div className="agent-hero-copy">
         <p className="agent-eyebrow"><span /> AI CODING · LLM FOR SOFTWARE ENGINEERING</p>
-        <h1 id="agent-home-title">{t("构建能完成研发任务的", "Build agents that deliver")}<br /><span>Coding Agent</span></h1>
+        <h1 id="agent-home-title">{t("构建能完成研发任务的", "Build a reliable")}<br /><span>Coding Agent</span></h1>
         <p className="agent-hero-description">{t("从模型 API、代码检索与工具调用，到自动修复、智能排障和 Agent 后训练。围绕研发任务练习，用测试、执行轨迹与实验结果验证改进。", "From model APIs, code retrieval and tool use to bug fixing, incident diagnosis and agent post-training. Practice development tasks and validate improvements with tests, execution traces and experiments.")}</p>
         <div className="agent-hero-actions">
           <button className="button" onClick={() => document.getElementById("agent-paths")?.scrollIntoView()}>{t("查看岗位能力路径", "Explore career paths")}<ArrowRight size={16} /></button>

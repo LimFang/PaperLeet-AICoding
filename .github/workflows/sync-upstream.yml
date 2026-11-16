@@ -1,8 +1,6 @@
-name: Sync offline problem library
+name: Sync algorithm foundations (manual)
 
 on:
-  schedule:
-    - cron: '37 8 * * *'
   workflow_dispatch:
     inputs:
       revision:
@@ -19,7 +17,7 @@ concurrency:
 
 jobs:
   validate:
-    if: github.repository == 'Hongyang-Du/PaperLeet' && github.ref == 'refs/heads/main'
+    if: github.repository == 'LimFang/PaperLeet-AICoding' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

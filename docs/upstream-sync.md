@@ -1,10 +1,11 @@
 # Updating the offline library
 
 `PaperLeet/paperleet.github.io` is the source of the maintained problem library.
-This repository owns the offline application. The daily **Sync offline problem
-library** workflow imports a pinned source snapshot, runs the offline checks,
+This fork owns the AI Coding application and local runtime. The manual
+**Sync algorithm foundations (manual)** workflow imports a pinned source snapshot, runs the checks,
 and opens or refreshes one pull request on `sync/upstream`. A maintainer reviews
-and merges that PR; the workflow never pushes directly to `main`.
+and merges that PR; the workflow never pushes directly to `main`. Automatic
+scheduled imports are disabled so curriculum updates remain an explicit choice.
 
 ## What follows upstream
 
@@ -53,7 +54,9 @@ rerunning synchronization.
 
 ## Run an update
 
-In GitHub Actions, select **Sync offline problem library → Run workflow**. Leave
+In GitHub Actions, select **Sync algorithm foundations (manual) → Run workflow**
+and choose `main` in `LimFang/PaperLeet-AICoding`. Other repositories or branches
+are skipped by the job guard. Leave
 the revision empty for the latest upstream `main`, or provide a complete
 40-character commit SHA. The workflow installs CPU-only dependencies and runs
 `make ci PYTHON=python` before proposing any changes.
