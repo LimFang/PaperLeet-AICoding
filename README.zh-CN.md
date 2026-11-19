@@ -7,13 +7,15 @@
 
 [English](README.md) | **简体中文**
 
-**构建能完成研发任务的 Coding Agent，用可执行的证据验证效果。**
+**实现论文里的算法，练习 Coding Agent 的工作流程，再用本机测试验证代码。**
 
-PaperLeet AI Coding 基于 [PaperLeet 离线版](https://github.com/Hongyang-Du/PaperLeet) fork，面向 Coding Agent 工程、质量智能与研发效能、Agent 数据与后训练，建设围绕软件工程任务的练习体系。主页按这些方向展示能力路径、任务规划与交付物。
+PaperLeet AI Coding 基于 [PaperLeet 离线版](https://github.com/Hongyang-Du/PaperLeet)，从论文算法实现出发，建设 Coding Agent 工程、软件质量与研发效能、Agent 数据与后训练三条学习路径。
 
 **当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道本地命令行练习，覆盖代码轨迹、缺陷诊断、测试设计和 Agent 仓库修复。完整课程规划见主页。
 
-[能力路径](#能力路径) · [本地启动](#本地启动) · [第一道练习](#第一道练习) · [网站部署](#网站部署) · [GitHub-Actions](#github-actions) · [参与贡献](#参与贡献)
+[本地启动](#本地启动) · [第一道练习](#第一道练习) · [AICB-9](#aicb-9-试验版) · [能力路径](#能力路径) · [网站部署](#网站部署) · [参与贡献](#参与贡献)
+
+![由研究论文、代码编辑器和测试清单组成的封面插画](assets/readme/engineering-cover.jpg)
 
 ## 能力路径
 
@@ -56,11 +58,25 @@ npm --prefix web ci
 make dev
 ```
 
-打开 **http://127.0.0.1:5173**。`make dev` 会导出题库，启动前端和监听 `127.0.0.1:8765` 的本机 Python 判题服务。保持终端开启；Ctrl-C 同时停止两个服务。下次使用时激活虚拟环境，再执行 `make dev`。
+`make dev` 启动后，打开 **http://127.0.0.1:5173**。这条命令会导出题库，并启动前端与监听 `127.0.0.1:8765` 的本机 Python 判题服务。按 Ctrl-C 可同时停止两项服务。下次使用时激活虚拟环境，再运行 `make dev`。
 
 只使用命令行做题时，安装 Python 依赖即可，跳过 npm 和 `make dev`。
 
 ## 第一道练习
+
+可以从 RMSNorm 开始。目标是实现 RMSNorm 和部分 RMSNorm，再用接口契约和参考结果检查实现。
+
+### 网页练习
+
+1. 运行 `make dev` 后打开 [RMSNorm 工作区](http://127.0.0.1:5173/#/architecture/rms_norm)。
+2. 阅读题目要求，在编辑器中补全 Python 起始代码。
+3. 点击 **运行全部测试**，在 **测试** 页签查看各层结果。
+
+在 IDE 中修改后，可以点击 **载入本机文件** 将代码读回网页。工作区支持中英文、浅色和深色主题、面板拖动以及本地学习进度。
+
+![RMSNorm 中文工作区，显示 Python 实现和本机 CPU 测试结果](assets/readme/workspace.zh-CN.png)
+
+### 命令行练习
 
 ```bash
 source .venv/bin/activate
@@ -80,13 +96,25 @@ paperleet test architecture/rms_norm --layers T0,T2
 paperleet test architecture/rms_norm --impl problems/architecture/rms_norm/solution.py
 ```
 
-也可以在网页中选择基础题，补全必做函数，点击“运行全部测试”。IDE 修改后，点击“载入本机文件”导入网页编辑器。界面支持中英文、浅色与深色主题、面板拖动和本地学习进度。
-
-使用 AI 辅助练习时，可以这样描述任务：
+<details>
+<summary>AI 辅助练习提示词</summary>
 
 > 阅读题面和 starter，先解释输入、输出和实现目标。只修改 workspace/architecture/rms_norm.py，保留判题测试。完成后运行全部必需测试并解释失败原因。首次实现后，再阅读 solution.py 对照分析。
 
-![算法基础练习工作区：Python 编辑器与分层测试反馈](assets/readme/workspace.png)
+</details>
+
+## AICB-9 试验版
+
+四道工程练习都从命令行运行。A01、B01 和 B03 无需模型 API。C01 接入真实模型时需要兼容 API，自动化检查使用模拟模型客户端。
+
+| 任务 | 提交内容 | 评测方式 |
+| --- | --- | --- |
+| A01 · 执行轨迹 | TinyCache 程序的结构化执行轨迹 | 按参考轨迹确定性评分 |
+| B01 · 根因诊断 | 带 MiniStore 代码证据的根因分析 | 按根因、证据和推理过程确定性评分 |
+| B03 · 测试设计 | 针对订单分页的 pytest 测试 | 先通过参考实现，再用六个代码变异体检验测试能否发现缺陷 |
+| C01 · 仓库修复 | TaskFlow 的修复计划和补丁 | 运行公开测试，记录工具调用和预算用量 |
+
+运行 `python scripts/aicb9.py --help` 查看可用命令。[题目说明与运行示例](tasks/aicb9/README.md)
 
 ## 验证与评测
 
@@ -104,8 +132,6 @@ paperleet test architecture/rms_norm --impl problems/architecture/rms_norm/solut
 ```bash
 paperleet mutate architecture/rms_norm
 ```
-
-规划中的 Agent 题将分别验证工具与运行器的确定性行为，以及接入真实模型后的任务效果。评测报告计划包含成功率、回归结果、调用成本、耗时和执行轨迹；不同方案应在相同模型、任务预算和独立任务集下比较。
 
 ## 保存代码与进度
 
