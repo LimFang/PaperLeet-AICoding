@@ -1,0 +1,10 @@
+{
+  "steps": [
+    {"step": 1, "result": null, "lru": [], "expired": [], "evicted": []},
+    {"step": 2, "result": null, "lru": [], "expired": [], "evicted": []},
+    {"step": 3, "result": null, "lru": [], "expired": [], "evicted": []},
+    {"step": 4, "result": null, "lru": [], "expired": [], "evicted": []},
+    {"step": 5, "result": null, "lru": [], "expired": [], "evicted": []},
+    {"step": 6, "result": null, "lru": [], "expired": [], "evicted": []}
+  ]
+}

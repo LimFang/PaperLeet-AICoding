@@ -1,0 +1,23 @@
+id: B01
+number: 201
+slug: root-cause-diagnosis
+title: Root Cause Diagnosis
+title_zh: 订单金额偏差的根因诊断
+type: structured_diagnosis
+difficulty: medium
+api_required: false
+repository: fixtures/ministore/b01/repository
+capabilities:
+  - symptom_to_cause_reasoning
+  - evidence_localization
+  - arithmetic_contracts
+scoring:
+  primary_file: 20
+  root_cause_id: 30
+  affected_function: 10
+  causal_order: 20
+  evidence: 15
+  alternative_hypothesis: 5
+runtime:
+  judge: deterministic_json
+  network: disabled

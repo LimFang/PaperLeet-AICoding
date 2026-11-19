@@ -1,0 +1,25 @@
+version: 1
+benchmark: AICB-9
+name: AI Coding Core Benchmark — Phase 1
+language: zh-CN
+tasks:
+  - id: A01
+    slug: trace-the-execution
+    title: Trace the Execution
+    category: code_understanding
+    api_required: false
+  - id: B01
+    slug: root-cause-diagnosis
+    title: Root Cause Diagnosis
+    category: engineering_reasoning
+    api_required: false
+  - id: B03
+    slug: test-the-hidden-bug
+    title: Test the Hidden Bug
+    category: engineering_reasoning
+    api_required: false
+  - id: C01
+    slug: repository-bug-fix
+    title: Repository Bug Fix
+    category: agentic_engineering
+    api_required: true

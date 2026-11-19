@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding is a fork of [PaperLeet Offline](https://github.com/Hongyang-Du/PaperLeet), developing a practice curriculum for Coding Agent engineering, software quality and developer productivity, and Agent data and post-training. The homepage organizes these directions around development tasks and their deliverables.
 
-**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. **Planned:** model API integration, repository retrieval, bug-repair Agents, test generation, incident diagnosis, and Agent training exercises. The planned exercises are described on the homepage; their runtimes and evaluators are still to be built.
+**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four local CLI exercises for code tracing, defect diagnosis, test design, and agent-based repository repair. The homepage describes the broader curriculum.
 
 [Learning paths](#learning-paths) · [Quick start](#quick-start) · [First exercise](#first-exercise) · [Deployment](#deployment) · [GitHub Actions](#github-actions) · [Contributing](#contributing)
 
@@ -143,6 +143,7 @@ Open **http://127.0.0.1:18080**. Ctrl-C closes the tunnel and releases the local
 ```text
 web/             React + TypeScript homepage, practice UI and labs
 problems/        Bilingual algorithm exercises, tests and reference solutions
+tasks/aicb9/     Engineering exercises and local evaluation fixtures
 papers.yaml      Paper metadata and module order
 paperleet/       CLI, local judge and shared helpers
 scripts/         Development, release packaging and upstream maintenance

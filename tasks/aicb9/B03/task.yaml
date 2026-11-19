@@ -1,0 +1,22 @@
+id: B03
+number: 203
+slug: test-the-hidden-bug
+title: Test the Hidden Bug
+title_zh: 为分页系统设计缺陷检测测试
+type: student_authored_tests
+difficulty: hard
+api_required: false
+repository: fixtures/ministore/b03
+capabilities:
+  - test_design
+  - boundary_analysis
+  - mutation_detection
+scoring:
+  reference_pass: 20
+  mutants_killed: 60
+  determinism: 10
+  suite_integrity: 10
+runtime:
+  judge: local_mutation_runner
+  timeout_seconds: 8
+  network: inherited_by_local_test_process
