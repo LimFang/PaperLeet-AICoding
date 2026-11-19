@@ -7,13 +7,15 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Build Coding Agents for software engineering tasks, and evaluate them with executable evidence.**
+**Implement AI methods from papers, practice coding-agent workflows, and verify your code with local tests.**
 
-PaperLeet AI Coding is a fork of [PaperLeet Offline](https://github.com/Hongyang-Du/PaperLeet), developing a practice curriculum for Coding Agent engineering, software quality and developer productivity, and Agent data and post-training. The homepage organizes these directions around development tasks and their deliverables.
+PaperLeet AI Coding builds on [PaperLeet Offline](https://github.com/Hongyang-Du/PaperLeet). It connects paper-based implementation practice with a curriculum for coding agents, software quality and developer productivity, and agent data and post-training.
 
 **Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four local CLI exercises for code tracing, defect diagnosis, test design, and agent-based repository repair. The homepage describes the broader curriculum.
 
-[Learning paths](#learning-paths) · [Quick start](#quick-start) · [First exercise](#first-exercise) · [Deployment](#deployment) · [GitHub Actions](#github-actions) · [Contributing](#contributing)
+[Quick start](#quick-start) · [First exercise](#first-exercise) · [AICB-9](#aicb-9-pilot) · [Learning paths](#learning-paths) · [Deployment](#deployment) · [Contributing](#contributing)
+
+![Illustration of a research paper, a laptop with code, and a test checklist](assets/readme/engineering-cover.jpg)
 
 ## Learning paths
 
@@ -56,11 +58,25 @@ npm --prefix web ci
 make dev
 ```
 
-Open **http://127.0.0.1:5173**. `make dev` exports the catalog and starts the frontend plus the local Python judge at `127.0.0.1:8765`. Keep the terminal open; Ctrl-C stops both services. On later visits, activate the environment and run `make dev` again.
+Open **http://127.0.0.1:5173** once `make dev` starts. The command exports the catalog and starts both the frontend and the local Python judge at `127.0.0.1:8765`. Press Ctrl-C to stop both services. For later sessions, activate the environment and run `make dev` again.
 
 For CLI-only practice, install the Python dependencies and skip npm and `make dev`.
 
 ## First exercise
+
+Start with RMSNorm. The module asks you to implement RMS normalization and its partial variant, then check both against the contract and reference behavior.
+
+### Web practice
+
+1. After starting `make dev`, open the [RMSNorm workspace](http://127.0.0.1:5173/#/architecture/rms_norm).
+2. Read the task and complete the Python starter in the editor.
+3. Select **Run all tests** and use the **Tests** tab to review the results by layer.
+
+Use **Load local file** after editing in your IDE. The workspace supports both languages, light and dark themes, resizable panels, and local progress.
+
+![RMSNorm workspace showing the Python implementation and results from a local CPU test run](assets/readme/workspace.png)
+
+### Command-line practice
 
 ```bash
 source .venv/bin/activate
@@ -80,13 +96,25 @@ paperleet test architecture/rms_norm --layers T0,T2
 paperleet test architecture/rms_norm --impl problems/architecture/rms_norm/solution.py
 ```
 
-In the web app, choose a foundation exercise, implement its required functions, and select **Run all tests**. Use **Load local file** to import IDE edits into the web editor. The interface supports Chinese/English, light/dark themes, resizable panels, and local progress.
-
-A useful AI-assisted practice prompt:
+<details>
+<summary>Prompt for AI-assisted practice</summary>
 
 > Read the statement and starter. Explain the inputs, outputs and implementation goal before coding. Implement only in workspace/architecture/rms_norm.py; leave the tests unchanged. Run all required tests and explain failures. Read solution.py after the first implementation for comparison.
 
-![Algorithm practice workspace with a Python editor and layered feedback](assets/readme/workspace.png)
+</details>
+
+## AICB-9 pilot
+
+The terminal exercises cover four engineering tasks. A01, B01, and B03 run without a model API. C01 needs a compatible API for a live run, and the automated checks use a mock model client.
+
+| Task | What you submit | How it is checked |
+| --- | --- | --- |
+| A01 · Trace the Execution | A structured trace of the TinyCache program | Deterministic scoring against a reference trace |
+| B01 · Root Cause Diagnosis | A diagnosis supported by evidence from MiniStore | Deterministic scoring of the cause, evidence, and reasoning |
+| B03 · Test the Hidden Bug | A pytest suite for order pagination | The reference must pass, and six code variants measure defect detection |
+| C01 · Repository Bug Fix | A repair plan and a patch for TaskFlow | Public tests and a record of tool calls and budget use |
+
+Use `python scripts/aicb9.py --help` to list the commands. [Task instructions and examples](tasks/aicb9/README.md)
 
 ## Validation and evaluation
 
@@ -104,8 +132,6 @@ Required layers vary by exercise. Passing a subset is useful for debugging; comp
 ```bash
 paperleet mutate architecture/rms_norm
 ```
-
-For planned Agent exercises, evaluation will separate deterministic tool/runtime checks from real-model task results. The intended reports include success rates, regression results, cost, latency and execution traces; comparisons should use the same model and task budgets with held-out tasks.
 
 ## Saving your work
 
