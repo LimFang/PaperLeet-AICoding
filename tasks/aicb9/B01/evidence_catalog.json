@@ -1,0 +1,6 @@
+{
+  "pricing.calculate_total": "The order-line amount is computed in calculate_total.",
+  "pricing.unit_rounding": "The discounted unit amount is quantized before quantity multiplication.",
+  "contract.line_rounding": "The business contract requires rounding after the discounted line subtotal.",
+  "contract.tax_after_subtotal": "Tax is computed after line subtotals have been accumulated."
+}

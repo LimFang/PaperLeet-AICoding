@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding 基于 [PaperLeet 离线版](https://github.com/Hongyang-Du/PaperLeet) fork，面向 Coding Agent 工程、质量智能与研发效能、Agent 数据与后训练，建设围绕软件工程任务的练习体系。主页按这些方向展示能力路径、任务规划与交付物。
 
-**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。**课程规划：** 模型 API 接入、仓库检索、自动修复、测试生成、智能排障及 Agent 训练练习。主页已展示新课程规划，相关运行器和评测器尚待实现。
+**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道本地命令行练习，覆盖代码轨迹、缺陷诊断、测试设计和 Agent 仓库修复。完整课程规划见主页。
 
 [能力路径](#能力路径) · [本地启动](#本地启动) · [第一道练习](#第一道练习) · [网站部署](#网站部署) · [GitHub-Actions](#github-actions) · [参与贡献](#参与贡献)
 
@@ -143,6 +143,7 @@ ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:18080:127.0.0.1:8080 paperleet-a
 ```text
 web/             React + TypeScript 主页、做题界面与实验
 problems/        双语算法题、测试与参考解
+tasks/aicb9/     工程练习与本地评测样例
 papers.yaml      论文信息与模块顺序
 paperleet/       CLI、本机判题与公共辅助代码
 scripts/         开发启动、发布打包与上游维护脚本

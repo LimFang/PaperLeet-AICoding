@@ -1,0 +1,22 @@
+id: A01
+number: 101
+slug: trace-the-execution
+title: Trace the Execution
+title_zh: 追踪缓存系统的执行过程
+type: structured_reasoning
+difficulty: easy
+api_required: false
+repository: fixtures/tinycache/repository
+capabilities:
+  - execution_tracing
+  - state_transition_reasoning
+  - ttl_boundary_analysis
+  - lru_semantics
+scoring:
+  result: 40
+  expired: 25
+  lru: 20
+  evicted: 15
+runtime:
+  judge: deterministic_json
+  network: disabled

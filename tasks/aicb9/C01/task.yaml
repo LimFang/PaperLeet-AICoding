@@ -1,0 +1,30 @@
+id: C01
+number: 301
+slug: repository-bug-fix
+title: Repository Bug Fix
+title_zh: 修复异步任务的重试逻辑
+type: agent_repository_repair
+difficulty: medium
+api_required: true
+repository: fixtures/taskflow/repository
+capabilities:
+  - repository_understanding
+  - root_cause_analysis
+  - patch_generation
+  - test_feedback
+  - retry_state_machine
+scoring:
+  hidden_tests: 55
+  pre_edit_plan: 15
+  verification: 15
+  efficiency: 10
+  patch_quality: 5
+execution:
+  max_tool_calls: 24
+  max_input_tokens: 40000
+  max_output_tokens: 8000
+  max_wall_seconds: 120
+  network: inherited_by_local_test_process
+private_evaluation:
+  status: planned_not_implemented
+  policy: load hidden tests only in a separate trusted evaluator, never in the Agent workspace
