@@ -1,4 +1,4 @@
-.PHONY: dev check data build ci
+.PHONY: dev check check-aicb9 data build ci
 
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 
@@ -9,6 +9,10 @@ check:
 	$(PYTHON) -m paperleet.cli export
 	$(PYTHON) -m pytest tests -q
 	npm --prefix web run check
+
+# Lightweight profile: no Torch, NumPy, or frontend installation required.
+check-aicb9:
+	$(PYTHON) -m pytest tests/aicb9 tests/benchmark -q
 
 data:
 	$(PYTHON) -m paperleet.cli vizdata all
