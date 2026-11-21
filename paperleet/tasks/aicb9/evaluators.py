@@ -24,8 +24,9 @@ B01_LIST_FIELDS = {"causal_order", "evidence_ids", "excluded_hypotheses"}
 def _read_answer(answer):
     if isinstance(answer, Mapping):
         return dict(answer)
-    path = Path(answer)
-    return json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(answer, (str, Path)):
+        return json.loads(Path(answer).read_text(encoding="utf-8"))
+    raise ValueError("answer must be a JSON object or a path to a JSON file")
 
 
 def _validate_top_level(payload, allowed, task_id):
