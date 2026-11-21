@@ -120,7 +120,7 @@ def build_run_report(
             "currency": "USD",
             "price_table_version": None,
         },
-        "seed_status": "recorded_only_provider_seed_not_forwarded",
+        "seed_status": "not_applicable" if metadata.get("provider") == "local" else "recorded_only_provider_seed_not_forwarded",
     }
     report = {
         "schema_version": RUN_REPORT_SCHEMA_VERSION,
