@@ -1,4 +1,5 @@
 import json
+import pytest
 from pathlib import Path
 
 from paperleet.tasks.aicb9.evaluators import evaluate_a01, evaluate_b01
@@ -16,11 +17,21 @@ def test_a01_reference_trace_scores_full_marks():
     report = evaluate_a01(answer)
     assert report["score"] == 100
     assert report["passed"]
+    assert report["task_id"] == "A01"
+    assert report["scoring_mode"] == "deterministic_rubric"
+    assert report["details"]["result"]["matched_steps"] == 6
 
 
 def test_a01_missing_result_does_not_match_explicit_null():
-    report = evaluate_a01({"steps": [{"step": 1}]})
-    assert report["score"] == 0
+    missing = evaluate_a01({"steps": [{"step": 1}]})
+    explicit_null = evaluate_a01({"steps": [{"step": 1, "result": None}]})
+    assert missing["score"] < explicit_null["score"]
+    missing_step = missing["details"]["result"]["mismatches"][0]
+    assert missing_step["step"] == 1
+    assert missing_step["present"] is False
+    assert not any(
+        item["step"] == 1 for item in explicit_null["details"]["result"]["mismatches"]
+    )
 
 
 def test_b01_reference_diagnosis_scores_full_marks():
@@ -35,6 +46,10 @@ def test_b01_reference_diagnosis_scores_full_marks():
     report = evaluate_b01(answer)
     assert report["score"] == 100
     assert report["passed"]
+    assert report["task_id"] == "B01"
+    assert report["scoring_mode"] == "deterministic_rubric"
+    assert report["details"]["evidence"]["precision"] == 1.0
+    assert report["details"]["evidence"]["recall"] == 1.0
 
 
 def test_wrong_b01_root_cause_loses_points():
@@ -75,3 +90,83 @@ def test_b01_fixture_exhibits_the_documented_rounding_bug():
     result = module.calculate_total([{"unit_price": "19.95", "quantity": 3}], "0.10", "0.00")
     assert result["subtotal"] == Decimal("53.88")
     assert result["subtotal"] != Decimal("53.87")
+
+@pytest.mark.parametrize("answer,match", [
+    ({"steps": [{"step": 1}, {"step": 1}]}, "duplicate step ID"),
+    ({"steps": [{"step": 7}]}, "unknown step ID"),
+    ({"steps": [{"step": True}]}, "must be an integer"),
+    ({"steps": [{"step": 1, "expired": "a"}]}, "must be a list of strings"),
+    ({"steps": [{"step": 1, "result": []}]}, "JSON scalar or null"),
+    ({"steps": [{"step": 1, "extra": "padding"}]}, "unknown fields"),
+    ({"steps": [], "extra": True}, "unknown fields"),
+    ([], "JSON object"),
+])
+def test_a01_rejects_malformed_or_padded_answers(answer, match):
+    with pytest.raises(ValueError, match=match):
+        evaluate_a01(answer)
+
+
+def test_a01_missing_steps_receive_partial_credit():
+    report = evaluate_a01({"steps": [{"step": 1, "result": None}]})
+    assert report["score"] < 100
+    assert report["validation"]["missing_steps"] == [2, 3, 4, 5, 6]
+
+
+def test_b01_rejects_wrong_types_extra_fields_and_duplicate_evidence():
+    base = {
+        "root_cause_id": "round_unit_price_before_quantity",
+        "primary_file": "src/ministore/pricing.py",
+        "affected_function": "calculate_total",
+        "causal_order": ["multiply_unit_price_by_quantity", "apply_discount", "round_line_subtotal", "calculate_tax"],
+        "evidence_ids": ["pricing.calculate_total", "pricing.unit_rounding"],
+        "excluded_hypotheses": ["tax_rate_is_primary_cause"],
+    }
+    wrong_type = {**base, "evidence_ids": "pricing.calculate_total"}
+    with pytest.raises(ValueError, match="evidence_ids must be a list"):
+        evaluate_b01(wrong_type)
+    duplicate = {**base, "evidence_ids": ["pricing.calculate_total", "pricing.calculate_total"]}
+    with pytest.raises(ValueError, match="duplicate"):
+        evaluate_b01(duplicate)
+    extra = {**base, "confidence": 1.0}
+    with pytest.raises(ValueError, match="unknown fields"):
+        evaluate_b01(extra)
+
+
+def test_b01_unsupported_evidence_reduces_precision_and_f1():
+    answer = {
+        "root_cause_id": "round_unit_price_before_quantity",
+        "primary_file": "src/ministore/pricing.py",
+        "affected_function": "calculate_total",
+        "causal_order": ["multiply_unit_price_by_quantity", "apply_discount", "round_line_subtotal", "calculate_tax"],
+        "evidence_ids": [
+            "pricing.calculate_total", "pricing.unit_rounding",
+            "contract.line_rounding", "made.up.evidence",
+        ],
+        "excluded_hypotheses": ["tax_rate_is_primary_cause"],
+    }
+    report = evaluate_b01(answer)
+    evidence = report["details"]["evidence"]
+    assert evidence["precision"] == 0.5
+    assert evidence["recall"] == 1.0
+    assert evidence["unsupported"] == ["made.up.evidence"]
+    assert evidence["false_positive"] == ["contract.line_rounding", "made.up.evidence"]
+    assert report["breakdown"]["evidence"] < 15
+    assert report["score"] < 100
+
+
+def test_b01_missing_fields_receive_partial_credit():
+    report = evaluate_b01({"root_cause_id": "round_unit_price_before_quantity"})
+    explicit_empty = evaluate_b01({
+        "root_cause_id": "round_unit_price_before_quantity",
+        "evidence_ids": [],
+    })
+    assert report["score"] < 100
+    assert report["details"]["evidence"]["recall"] == 0.0
+    assert report["details"]["evidence"]["present"] is False
+    assert explicit_empty["details"]["evidence"]["present"] is True
+
+def test_a01_preserves_the_existing_80_point_pass_threshold():
+    reference = json.loads((task_root() / "A01" / "reference_trace.json").read_text())
+    report = evaluate_a01({"steps": reference["steps"][:5]})
+    assert report["score"] == 83.33
+    assert report["passed"] is True

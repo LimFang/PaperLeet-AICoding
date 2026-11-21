@@ -25,11 +25,11 @@ The current deterministic rubric has a maximum of 100 points:
 | LRU order | 20 |
 | Evicted keys | 15 |
 
-The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. Duplicate step identifiers and malformed structures should be rejected or handled according to the versioned evaluator policy.
+The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. The valid step domain is exactly 1–6: missing expected steps receive partial/no credit, while duplicate or unknown step IDs, unknown fields, and wrong field types are rejected. Missing result/list fields receive no credit. The existing 80/100 pass threshold is unchanged. Evaluation details explicitly indicate whether each submitted field was present, so an omitted field remains distinguishable from an explicit JSON `null`.
 
 ### B01 — Root Cause Diagnosis
 
-The current deterministic rubric has a maximum of 100 points:
+**Rubric version: 1.1.0.** The deterministic rubric has a maximum of 100 points:
 
 | Component | Weight |
 |---|---:|
@@ -37,10 +37,19 @@ The current deterministic rubric has a maximum of 100 points:
 | Root cause ID | 30 |
 | Affected function | 10 |
 | Causal order | 20 |
-| Evidence | 15 |
+| Evidence F1 | 15 |
 | Alternative-hypothesis exclusion | 5 |
 
-The reference diagnosis and evidence catalog define the expected answer. Evidence reporting should expose precision and recall separately when the evaluator supports both; matching one required evidence item must not conceal unsupported extra evidence.
+The reference diagnosis and evidence catalog define the expected answer. Evidence precision and recall are computed separately:
+
+- Precision is the fraction of submitted evidence IDs that match the gold evidence set.
+- Recall is the fraction of gold evidence IDs present in the submission.
+- The 15-point evidence component uses their harmonic mean (F1).
+- Unknown evidence IDs remain in the submitted set as unsupported predictions and reduce precision.
+- Duplicate evidence IDs, malformed list values, wrong field types, and unknown top-level fields are rejected.
+- Missing fields receive no credit rather than causing a crash.
+
+This prevents a submission from obtaining full evidence credit by including the required evidence alongside arbitrary unsupported IDs. The existing 80/100 pass threshold is unchanged. Reports distinguish unknown evidence IDs from all non-gold evidence predictions, including known catalogue entries that do not support the target diagnosis.
 
 ### B03 — Test the Hidden Bug
 
