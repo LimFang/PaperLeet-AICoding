@@ -143,14 +143,14 @@ The following is an illustrative shape, not a claim that the current CLI emits t
   "budget_limits": {
     "max_input_tokens": 40000,
     "max_output_tokens": 8000,
-    "max_api_calls": 24,
+    "max_model_calls": 24,
     "max_tool_calls": 24,
     "max_wall_seconds": 120
   },
   "usage": {
     "input_tokens": null,
     "output_tokens": null,
-    "usage_source": "provider_reported",
+    "usage_source": "not_reported",
     "estimated_input_tokens": null,
     "estimated_output_tokens": null,
     "api_calls": 0,
