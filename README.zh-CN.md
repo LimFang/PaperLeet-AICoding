@@ -116,6 +116,10 @@ paperleet test architecture/rms_norm --impl problems/architecture/rms_norm/solut
 
 运行 `python scripts/aicb9.py --help` 查看可用命令。[题目说明与运行示例](tasks/aicb9/README.md)
 
+### Benchmark 协议与当前状态
+
+AICB-9 正在先行明确 Benchmark 协议，之后再实现统一实验执行器。协议定义了四种对照策略：S0 Black-box Single-Prompt、S1 White-box Single-Prompt、S2 Tool-Augmented Single-Prompt 和 S3 Agentic。目前它们是协议定义，并不意味着当前试验版已经具备全部可运行的策略适配器。详见 [Benchmark 协议](docs/benchmark-protocol.md)、[评测指标](docs/evaluation-metrics.md)、[可复现性要求](docs/reproducibility.md) 和 [评分规则](docs/scoring-rules.md)。当前 B03 的 Mutants 是公开的开发样例；C01 的可信隐藏测试分数尚未由本地评测器实现。
+
 ## 验证与评测
 
 现有算法判题采用四层检查：

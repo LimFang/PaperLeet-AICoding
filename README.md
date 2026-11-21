@@ -116,6 +116,10 @@ The terminal exercises cover four engineering tasks. A01, B01, and B03 run witho
 
 Use `python scripts/aicb9.py --help` to list the commands. [Task instructions and examples](tasks/aicb9/README.md)
 
+### Benchmark protocol and status
+
+The AICB-9 benchmark protocol is being specified before the shared experiment runner is implemented. It defines four comparison strategies: S0 Black-box Single-Prompt, S1 White-box Single-Prompt, S2 Tool-Augmented Single-Prompt, and S3 Agentic. These are protocol definitions; not all strategy adapters are runnable in the current pilot. See the [benchmark protocol](docs/benchmark-protocol.md), [evaluation metrics](docs/evaluation-metrics.md), [reproducibility requirements](docs/reproducibility.md), and [scoring rules](docs/scoring-rules.md). The current B03 mutants are public development fixtures, and C01's trusted hidden-test score is not yet available in the local evaluator.
+
 ## Validation and evaluation
 
 The current algorithm judge uses four layers:
