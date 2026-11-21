@@ -162,6 +162,17 @@ def validate_run_report(report: Any) -> None:
         raise ValueError(f"manifest is missing fields: {sorted(missing_manifest)}")
     if not isinstance(manifest["run_id"], str) or not manifest["run_id"]:
         raise ValueError("manifest.run_id must be a non-empty string")
+    for key in ("created_at", "started_at", "finished_at", "task_id", "task_version",
+                "protocol_version", "evaluator_version", "rubric_version", "runner_version",
+                "provider", "strategy_version", "prompt_template_version", "output_schema_version"):
+        if not isinstance(manifest[key], str) or not manifest[key]:
+            raise ValueError(f"manifest.{key} must be a non-empty string")
+    if not isinstance(manifest["model_parameters"], dict) or not isinstance(manifest["budget_limits"], dict):
+        raise ValueError("manifest.model_parameters and manifest.budget_limits must be objects")
+    if type(manifest["seed_applied"]) is not bool:
+        raise ValueError("manifest.seed_applied must be boolean")
+    if manifest["seed"] is not None and type(manifest["seed"]) is not int:
+        raise ValueError("manifest.seed must be an integer or null")
     if manifest["strategy"] not in ("S0", "S1", "S2", "S3", "DETERMINISTIC"):
         raise ValueError("manifest.strategy is invalid")
     if manifest["prompt_hash"] is not None and not str(manifest["prompt_hash"]).startswith("sha256:"):
@@ -171,6 +182,17 @@ def validate_run_report(report: Any) -> None:
     usage = manifest["usage"]
     if not isinstance(usage, dict):
         raise ValueError("manifest.usage must be an object")
+    usage_required = {
+        "input_tokens", "output_tokens", "estimated_input_tokens", "estimated_output_tokens",
+        "usage_source", "api_calls", "tool_calls", "wall_time_seconds", "cost_usd",
+        "currency", "price_table_version",
+    }
+    if usage_required - set(usage):
+        raise ValueError(f"manifest.usage is missing fields: {sorted(usage_required - set(usage))}")
+    if not isinstance(usage["usage_source"], str) or not isinstance(usage["currency"], str):
+        raise ValueError("manifest.usage source and currency must be strings")
+    if isinstance(usage["wall_time_seconds"], bool) or not isinstance(usage["wall_time_seconds"], (int, float)) or usage["wall_time_seconds"] < 0:
+        raise ValueError("manifest.usage.wall_time_seconds must be non-negative")
     for key in ("input_tokens", "output_tokens", "estimated_input_tokens", "estimated_output_tokens", "cost_usd"):
         value = usage.get(key)
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0):
