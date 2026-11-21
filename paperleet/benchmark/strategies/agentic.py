@@ -47,9 +47,10 @@ class AgenticStrategy:
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
                 "source": "provider_reported",
-                "cost_usd": budget.get("cost_usd"),
-                "price_table_version": budget.get("price_table_version"),
             }
+            if budget.get("cost_usd") is not None and budget.get("price_table_version"):
+                usage["cost_usd"] = budget["cost_usd"]
+                usage["price_table_version"] = budget["price_table_version"]
         return StrategyResult(
             strategy=self.strategy_id,
             output=report,
