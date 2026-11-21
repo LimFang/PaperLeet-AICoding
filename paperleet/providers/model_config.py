@@ -1,5 +1,6 @@
 """Non-secret model configuration for OpenAI-compatible providers."""
 from dataclasses import dataclass, field
+import math
 import os
 from typing import Mapping
 
@@ -23,8 +24,8 @@ class ModelConfig:
             raise ValueError("base_url must be a non-empty URL")
         if not self.api_key or not self.api_key.strip():
             raise ValueError("API key is required")
-        if isinstance(self.timeout, bool) or self.timeout <= 0:
-            raise ValueError("timeout must be positive")
+        if isinstance(self.timeout, bool) or not isinstance(self.timeout, (int, float)) or not math.isfinite(self.timeout) or self.timeout <= 0:
+            raise ValueError("timeout must be a positive finite number")
 
     @classmethod
     def from_env(
