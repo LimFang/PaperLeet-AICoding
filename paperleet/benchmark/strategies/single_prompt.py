@@ -1,5 +1,5 @@
 """S0/S1 single-prompt strategies."""
-from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage
+from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage, _validate_single_prompt_messages
 
 
 class BlackBoxSinglePrompt:
@@ -11,6 +11,7 @@ class BlackBoxSinglePrompt:
         self.client = client
 
     def run(self, request: StrategyRequest) -> StrategyResult:
+        _validate_single_prompt_messages(request.messages)
         if request.method_steps is not None:
             raise ValueError("S0 does not accept method_steps")
         if request.evidence is not None:
