@@ -70,8 +70,10 @@ class Budget:
             self.output_usage_complete = False
         else:
             self.output_tokens += int(completion_tokens)
-        if self.input_tokens + self.estimated_input_tokens > self.max_input_tokens or self.output_tokens > self.max_output_tokens:
-            raise BudgetExceeded("provider-reported or estimated token budget exceeded")
+        if self.input_tokens > self.max_input_tokens or self.output_tokens > self.max_output_tokens:
+            raise BudgetExceeded("provider-reported token budget exceeded")
+        if self.input_tokens + self.estimated_input_tokens > self.max_input_tokens:
+            raise BudgetExceeded("estimated input-token budget exceeded")
 
 
 def estimate_tokens(messages):
