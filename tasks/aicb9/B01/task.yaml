@@ -33,8 +33,8 @@ interfaces:
   output: B01/starter_answer.json
   format: json
 strategies:
-  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
-  planned: [S0, S1, S2]
+  supported: [S0, S1, S2]  # Runnable through the generic benchmark runner.
+  planned: []
 fixture:
   version: 1.0.0
   digest: git-tree-sha1:f37159cfc1a19769706e66692d2df993a87693c1
