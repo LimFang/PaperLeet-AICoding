@@ -31,7 +31,7 @@ private_evaluation:
 
 # Schema v2 metadata. Existing scoring and runtime/execution fields remain authoritative.
 task_version: 1.0.0
-rubric_version: 1.0.0
+rubric_version: 1.1.0
 cli:
   command: agent
 interfaces:
