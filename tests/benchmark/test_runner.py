@@ -72,22 +72,46 @@ def test_generic_runner_executes_mocked_c01_agentic_task():
     class FakeRunner:
         def run(self, instruction):
             assert "Required behavior" in instruction
+            public_tests = {"returncode": 0, "output": "3 passed", "timed_out": False}
+            final_diff = "diff --git a/src/worker.py b/src/worker.py\\n+retry"
             return {
                 "task_id": "C01",
                 "final_text": "Patched retry behavior.",
-                "plan": {"root_cause": "transient errors become terminal"},
+                "plan": {
+                    "root_cause": "TransientError is handled as terminal failure.",
+                    "affected_files": ["src/taskflow/worker.py"],
+                    "expected_invariants": ["PermanentError is not retried."],
+                    "test_plan": ["Run public tests."],
+                    "risk_factors": ["Duplicate terminal events."],
+                },
                 "trace": [
-                    {"tool": "run_public_tests", "arguments": {}, "result": {"returncode": 0, "output": "3 passed"}},
-                    {"tool": "git_diff", "arguments": {}, "result": {"returncode": 0, "output": "diff --git a/src/worker.py"}},
+                    {"tool": "run_public_tests", "arguments": {}, "result": public_tests},
+                    {"tool": "git_diff", "arguments": {}, "result": {"returncode": 0, "output": final_diff}},
                 ],
+                "final_diff": final_diff,
+                "changed_files": ["src/taskflow/worker.py"],
+                "diff_check": {"returncode": 0, "output": ""},
+                "working_tree_status": {"returncode": 0, "output": " M src/taskflow/worker.py"},
+                "snapshot_available": True,
+                "public_test_runs": [public_tests],
+                "public_test_result": public_tests,
                 "budget": {
                     "api_calls": 2,
                     "tool_calls": 2,
                     "input_tokens": 300,
                     "output_tokens": 100,
                     "estimated_input_tokens": None,
+                    "estimated_output_tokens": None,
+                    "wall_time_s": 12.0,
+                    "limits": {
+                        "max_tool_calls": 24,
+                        "max_input_tokens": 40000,
+                        "max_output_tokens": 8000,
+                        "max_wall_seconds": 120,
+                    },
                 },
                 "stopped_reason": None,
+                "hidden_test_score": 55,
             }
 
     task = next(item for item in load_registry() if item["id"] == "C01")
@@ -102,8 +126,15 @@ def test_generic_runner_executes_mocked_c01_agentic_task():
     validate_run_report(report)
     assert report["status"] == "succeeded"
     assert report["metrics"]["correctness"]["status"] == "unavailable"
-    assert "hidden-test" in report["metrics"]["correctness"]["reason"]
+    assert report["metrics"]["correctness"]["hidden_tests"]["score"] is None
+    assert report["metrics"]["correctness"]["hidden_tests"]["max_score"] == 55
+    assert report["metrics"]["correctness"]["public_local_score"]["earned_points"] == 45
+    assert report["metrics"]["correctness"]["public_local_score"]["available_points"] == 45
+    assert report["metrics"]["reasoning"]["score"] == 15
+    assert report["metrics"]["robustness"]["score"] == 15
+    assert report["metrics"]["efficiency"]["score"] == 10
     assert report["metrics"]["efficiency"]["api_calls"] == 2
+    assert report["metrics"]["maintainability"]["score"] == 5
     assert report["metrics"]["efficiency"]["tool_calls"] == 2
     assert report["artifacts"]["patch_digest"].startswith("sha256:")
     assert report["artifacts"]["trace_digest"].startswith("sha256:")
