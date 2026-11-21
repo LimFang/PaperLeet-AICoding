@@ -39,8 +39,8 @@ interfaces:
   output: C01/agent_instruction.md
   format: repository_patch
 strategies:
-  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
-  planned: [S0, S1, S2, S3]
+  supported: [S3]  # Runnable through the generic benchmark runner.
+  planned: [S0, S1, S2]
 fixture:
   version: 1.0.0
   digest: git-tree-sha1:27a54c7505f0421b631692b30d29a655269a5cc3
