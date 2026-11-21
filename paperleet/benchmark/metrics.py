@@ -17,7 +17,12 @@ def efficiency_metrics(strategy_result, wall_time_seconds: float) -> dict:
         "status": "available",
         "input_tokens": usage.get("input_tokens"),
         "output_tokens": usage.get("output_tokens"),
-        "estimated_input_tokens": budget.get("estimated_input_tokens"),
+        "estimated_input_tokens": (
+            budget.get("estimated_input_tokens")
+            if budget.get("estimated_input_tokens") is not None
+            else strategy_result.metadata.get("estimated_input_tokens")
+        ),
+        "estimated_output_tokens": strategy_result.metadata.get("estimated_output_tokens"),
         "usage_source": usage.get("source", "unavailable"),
         "api_calls": strategy_result.api_calls,
         "tool_calls": strategy_result.tool_calls,
