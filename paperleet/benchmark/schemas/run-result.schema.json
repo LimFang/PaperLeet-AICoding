@@ -170,7 +170,8 @@
             "wall_time_seconds",
             "cost_usd",
             "currency",
-            "price_table_version"
+            "price_table_version",
+            "estimated_output_tokens"
           ],
           "properties": {
             "input_tokens": {
@@ -224,6 +225,13 @@
                 "string",
                 "null"
               ]
+            },
+            "estimated_output_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
             }
           },
           "additionalProperties": true
