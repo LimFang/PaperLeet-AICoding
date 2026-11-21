@@ -126,7 +126,7 @@ def test_b01_unsupported_evidence_reduces_precision_and_f1():
         "causal_order": ["multiply_unit_price_by_quantity", "apply_discount", "round_line_subtotal", "calculate_tax"],
         "evidence_ids": [
             "pricing.calculate_total", "pricing.unit_rounding",
-            "pricing.discount", "made.up.evidence",
+            "contract.line_rounding", "made.up.evidence",
         ],
         "excluded_hypotheses": ["tax_rate_is_primary_cause"],
     }
