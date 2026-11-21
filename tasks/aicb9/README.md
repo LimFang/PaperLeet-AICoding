@@ -34,6 +34,36 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 
 注册表加载时会检查任务 ID/Slug/编号、版本、输入输出文件、策略名称、分数权重和预算类型。为了兼容旧扩展，缺少 `schema_version` 的旧版注册表仍可读取，但新任务应遵循 v2。所有本地 CLI 的任务列表由注册表的 `cli.command` 字段生成，不再单独硬编码题号。
 
+## 统一 Benchmark Runner（实验接口）
+
+安装项目后，可以使用统一入口执行已声明支持的任务/策略组合：
+
+```bash
+# 配置模型 API；--model 指定精确模型 ID。
+export AICB9_API_KEY="..."
+export AICB9_BASE_URL="https://api.deepseek.com"
+export AICB9_PROVIDER="openai_compatible"
+
+# A01：Black-box Single-Prompt
+paperleet-benchmark run --task A01 --model "<model-id>" --strategy s0 --seed 42
+
+# A01：White-box Single-Prompt（只额外提供方法步骤）
+paperleet-benchmark run --task A01 --model "<model-id>" --strategy s1 \
+  --method-steps-file /path/to/method-steps.md
+
+# B01：Tool-Augmented Single-Prompt（证据由调用方预先生成）
+paperleet-benchmark run --task B01 --model "<model-id>" --strategy s2 \
+  --evidence-file /path/to/evidence.txt
+
+# C01：Agentic；默认复制公开 fixture 到临时 Git 工作区
+paperleet-benchmark run --task C01 --model "<model-id>" --strategy s3 \
+  --output reports/benchmark/c01-run.json
+```
+
+Runner 会记录任务/Fixture 版本、策略、模型、Prompt Hash、运行时间、调用数、Token 使用情况和产物摘要。当前 OpenAI-compatible adapter 不向模型请求传递随机种子，因此 `seed` 只记录为实验元数据，报告会明确标记 `seed_applied: false`。未获得 Provider usage 时，Token 字段保持 `null`；成本在引入版本化价格表前保持 `null`。
+
+当前可运行组合以各题 `task.yaml` 的 `strategies.supported` 为准：A01/B01 支持 S0/S1/S2，C01 支持 S3；B03 暂不支持统一 Runner。C01 的可信隐藏测试评分仍未实现，报告不会伪造隐藏测试分数。S3 本地执行仅适用于可信代码，不是公网不可信代码沙箱。
+
 ## 本地运行
 
 安装项目的 Python 依赖后，在仓库根目录运行以下命令。做 A01 或 B01 时，先复制题目目录中的 `starter_answer.json`，填完后将其路径传给 `--answer`。做 B03 时，将自己的 pytest 文件传给 `--tests`。
