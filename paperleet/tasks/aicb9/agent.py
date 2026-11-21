@@ -81,6 +81,9 @@ def estimate_tokens(messages):
     return max(1, (len(text) + 2) // 3)
 
 
+AGENT_SYSTEM_PROMPT = "You are a coding agent operating in a bounded local repository. Inspect before editing. Submit an immutable structured plan before any patch. Use only provided tools. Never claim tests passed unless run_public_tests confirms it."
+
+
 TOOL_DEFINITIONS = [
     {"type": "function", "function": {"name": "list_files", "description": "List source files in the task repository.", "parameters": {"type": "object", "properties": {"pattern": {"type": "string"}}, "required": []}}},
     {"type": "function", "function": {"name": "read_file", "description": "Read a repository file by relative path.", "parameters": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}},
@@ -228,7 +231,7 @@ class AgentRunner:
 
     def run(self, instruction):
         messages = [
-            {"role": "system", "content": "You are a coding agent operating in a bounded local repository. Inspect before editing. Submit an immutable structured plan before any patch. Use only provided tools. Never claim tests passed unless run_public_tests confirms it."},
+            {"role": "system", "content": AGENT_SYSTEM_PROMPT},
             {"role": "user", "content": instruction},
         ]
         final_text = ""

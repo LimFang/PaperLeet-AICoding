@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding 基于 [PaperLeet 离线版](https://github.com/Hongyang-Du/PaperLeet)，从论文算法实现出发，建设 Coding Agent 工程、软件质量与研发效能、Agent 数据与后训练三条学习路径。
 
-**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道本地命令行练习，覆盖代码轨迹、缺陷诊断、测试设计和 Agent 仓库修复。完整课程规划见主页。
+**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道工程练习、版本化任务契约、统一 Benchmark Runner 与 S0–S3 策略适配器；A01/B01 支持无需模型 API 的确定性评分，C01 提供受限的本地 Agent 工作流。可信隐藏测试评分和公网不可信代码执行尚未开放。
 
 [本地启动](#本地启动) · [第一道练习](#第一道练习) · [AICB-9](#aicb-9-试验版) · [能力路径](#能力路径) · [网站部署](#网站部署) · [参与贡献](#参与贡献)
 
@@ -118,7 +118,7 @@ paperleet test architecture/rms_norm --impl problems/architecture/rms_norm/solut
 
 ### Benchmark 协议与当前状态
 
-AICB-9 正在先行明确 Benchmark 协议，之后再实现统一实验执行器。协议定义了四种对照策略：S0 Black-box Single-Prompt、S1 White-box Single-Prompt、S2 Tool-Augmented Single-Prompt 和 S3 Agentic。目前它们是协议定义，并不意味着当前试验版已经具备全部可运行的策略适配器。详见 [Benchmark 协议](docs/benchmark-protocol.md)、[评测指标](docs/evaluation-metrics.md)、[可复现性要求](docs/reproducibility.md) 和 [评分规则](docs/scoring-rules.md)。当前 B03 的 Mutants 是公开的开发样例；C01 的可信隐藏测试分数尚未由本地评测器实现。
+AICB-9 正在先行明确 Benchmark 协议，之后再实现统一实验执行器。协议定义了四种对照策略：S0 Black-box Single-Prompt、S1 White-box Single-Prompt、S2 Tool-Augmented Single-Prompt 和 S3 Agentic。统一 Runner 已提供 S0 Black-box Single-Prompt、S1 White-box Single-Prompt、S2 Tool-Augmented Single-Prompt 和 S3 Agentic 适配器，但具体题目能运行哪些策略以任务注册表为准：A01/B01 支持 S0–S2，C01 支持 S3，B03 暂未接入统一 Runner。A01/B01 已有答案的确定性评分无需模型 API。详见 [Benchmark 协议](docs/benchmark-protocol.md)、[评测指标](docs/evaluation-metrics.md)、[可复现性要求](docs/reproducibility.md) 和 [评分规则](docs/scoring-rules.md)。当前 B03 的 Mutants 是公开的开发样例；C01 的可信隐藏测试分数尚未由本地评测器实现。
 
 ## 验证与评测
 

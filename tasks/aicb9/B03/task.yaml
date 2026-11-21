@@ -32,7 +32,7 @@ interfaces:
   output: B03/statement.md
   format: pytest_file
 strategies:
-  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
+  supported: []  # Runnable through the generic benchmark runner.
   planned: [S0, S1, S2]
 fixture:
   version: 1.0.0

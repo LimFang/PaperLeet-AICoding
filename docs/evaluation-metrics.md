@@ -85,14 +85,14 @@ Record actual usage and configured limits separately.
 |---|---|---|
 | Input tokens | Provider-reported prompt/input tokens | tokens |
 | Output tokens | Provider-reported completion/output tokens | tokens |
-| Estimated tokens | Local estimate when provider usage is unavailable | tokens; clearly labelled estimate |
+| Estimated tokens | Local estimate of input/output tokens, reported separately from provider usage | tokens; clearly labelled estimate |
 | API calls | Requests sent to model endpoints | calls |
 | Tool calls | Agent tool invocations | calls |
 | Wall time | Run start to terminal completion/stop | seconds |
 | Cost | Calculated from provider usage and a versioned price table | currency |
 | Budget utilization | Actual consumption divided by configured limit | ratio |
 
-Provider-reported usage and estimated usage must never be merged into one field.
+Provider-reported usage and estimated usage must never be merged into one field. The local estimate may be reported alongside actual usage for calibration; it must never replace a missing provider value silently.
 
 ### Cost calculation
 

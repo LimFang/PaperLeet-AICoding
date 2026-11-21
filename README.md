@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding builds on [PaperLeet Offline](https://github.com/Hongyang-Du/PaperLeet). It connects paper-based implementation practice with a curriculum for coding agents, software quality and developer productivity, and agent data and post-training.
 
-**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four local CLI exercises for code tracing, defect diagnosis, test design, and agent-based repository repair. The homepage describes the broader curriculum.
+**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four engineering exercises, versioned task contracts, a unified benchmark runner with S0–S3 strategy adapters, and deterministic no-API scoring for A01/B01. C01 provides the bounded local Agent workflow; trusted hidden-test scoring and hosted untrusted-code execution are not yet available.
 
 [Quick start](#quick-start) · [First exercise](#first-exercise) · [AICB-9](#aicb-9-pilot) · [Learning paths](#learning-paths) · [Deployment](#deployment) · [Contributing](#contributing)
 
@@ -118,7 +118,7 @@ Use `python scripts/aicb9.py --help` to list the commands. [Task instructions an
 
 ### Benchmark protocol and status
 
-The AICB-9 benchmark protocol is being specified before the shared experiment runner is implemented. It defines four comparison strategies: S0 Black-box Single-Prompt, S1 White-box Single-Prompt, S2 Tool-Augmented Single-Prompt, and S3 Agentic. These are protocol definitions; not all strategy adapters are runnable in the current pilot. See the [benchmark protocol](docs/benchmark-protocol.md), [evaluation metrics](docs/evaluation-metrics.md), [reproducibility requirements](docs/reproducibility.md), and [scoring rules](docs/scoring-rules.md). The current B03 mutants are public development fixtures, and C01's trusted hidden-test score is not yet available in the local evaluator.
+The benchmark runner provides S0 Black-box Single-Prompt, S1 White-box Single-Prompt, S2 Tool-Augmented Single-Prompt, and S3 Agentic adapters, subject to each task's declared support in its registry metadata. A01/B01 support S0–S2; C01 supports S3; B03 remains outside the generic runner. Existing deterministic A01/B01 answer evaluation works without a model API. See the [benchmark protocol](docs/benchmark-protocol.md), [evaluation metrics](docs/evaluation-metrics.md), [reproducibility requirements](docs/reproducibility.md), and [scoring rules](docs/scoring-rules.md). The current B03 mutants are public development fixtures, and C01's trusted hidden-test score is not yet available in the local evaluator.
 
 ## Validation and evaluation
 

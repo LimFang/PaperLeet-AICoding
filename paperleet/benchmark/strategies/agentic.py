@@ -1,5 +1,9 @@
 """S3 adapter around the existing bounded C01 AgentRunner."""
-from .base import StrategyRequest, StrategyResult
+import hashlib
+import json
+
+from paperleet.tasks.aicb9.agent import AGENT_SYSTEM_PROMPT, TOOL_DEFINITIONS
+from .base import StrategyRequest, StrategyResult, _prompt_hash, _estimate_tokens
 
 
 class AgenticStrategy:
@@ -24,6 +28,14 @@ class AgenticStrategy:
 
         report = self.runner.run(instruction)
         budget = report.get("budget", {})
+        prompt_messages = [
+            {"role": "system", "content": AGENT_SYSTEM_PROMPT},
+            {"role": "user", "content": instruction},
+        ]
+        prompt_hash = _prompt_hash(prompt_messages)
+        estimated_input_tokens = _estimate_tokens(prompt_messages)
+        tool_schema = json.dumps(TOOL_DEFINITIONS, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        tool_schema_hash = "sha256:" + hashlib.sha256(tool_schema.encode("utf-8")).hexdigest()
         input_tokens = budget.get("input_tokens")
         output_tokens = budget.get("output_tokens")
         usage = None
@@ -40,5 +52,11 @@ class AgenticStrategy:
             api_calls=int(budget.get("api_calls") or 0),
             tool_calls=int(budget.get("tool_calls") or 0),
             trace=tuple(report.get("trace") or ()),
-            metadata={"stop_reason": report.get("stopped_reason")},
+            metadata={
+                "stop_reason": report.get("stopped_reason"),
+                "prompt_hash": prompt_hash,
+                "tool_schema_hash": tool_schema_hash,
+                "estimated_input_tokens": estimated_input_tokens,
+                "estimated_output_tokens": None,
+            },
         )

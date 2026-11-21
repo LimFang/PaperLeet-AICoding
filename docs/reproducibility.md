@@ -1,6 +1,6 @@
 # AICB-9 Reproducibility
 
-**Status:** Required provenance contract for future benchmark runs. The current pilot does not yet implement the unified manifest/runner described here.
+**Status:** Required provenance contract for benchmark runs. The v0.2 runner emits the versioned manifest and report fields described here; provider seed forwarding and versioned price-table cost calculation remain unavailable.
 
 ## 1. Reproducibility objective
 
@@ -102,71 +102,80 @@ For stochastic model-backed tasks, record each run independently. The experiment
 
 Do not overwrite earlier run records when repeating an experiment.
 
-## 9. Example manifest
+## 9. Example run report
 
-The following is an illustrative shape, not a claim that the current CLI emits these fields:
+The following is an illustrative shape of the v0.2 report schema. Placeholder values are not measured results.
 
 ```json
 {
   "schema_version": "1.0",
-  "run_id": "example-run-0001",
   "status": "succeeded",
-  "task": {
-    "id": "C01",
-    "version": "1.0.0",
-    "fixture_digest": "sha256:<fixture-digest>",
-    "repository_commit": "<fixture-commit>"
-  },
-  "protocol": {
-    "version": "0.1",
-    "strategy": "S3",
-    "strategy_version": "0.1"
-  },
-  "model": {
+  "manifest": {
+    "run_id": "example-run-0001",
+    "created_at": "2026-11-21T00:00:00Z",
+    "started_at": "2026-11-21T00:00:00Z",
+    "finished_at": "2026-11-21T00:00:12Z",
+    "task_id": "C01",
+    "task_version": "1.0.0",
+    "fixture_digest": "git-tree-sha1:<fixture-tree-sha>",
+    "repository_commit": null,
+    "protocol_version": "0.1",
+    "evaluator_version": "1.0.0",
+    "rubric_version": "1.0.0",
+    "runner_version": "0.1.0",
     "provider": "provider-name",
     "model_id": "exact-model-id",
-    "api_version": null,
-    "seed": 42,
-    "parameters": {
-      "temperature": 0,
-      "max_output_tokens": 2048
-    }
-  },
-  "provenance": {
+    "strategy": "S3",
+    "strategy_version": "0.1.0",
     "prompt_template_version": "1",
     "prompt_hash": "sha256:<prompt-digest>",
     "output_schema_version": "1",
-    "runner_version": "<git-commit>",
-    "evaluator_version": "<evaluator-version>",
-    "rubric_version": "1"
+    "tool_schema_hash": "sha256:<tool-schema-digest>",
+    "seed": 42,
+    "seed_applied": false,
+    "seed_status": "recorded_only_provider_seed_not_forwarded",
+    "model_parameters": {
+      "max_output_tokens": 8000
+    },
+    "budget_limits": {
+      "max_tool_calls": 24,
+      "max_input_tokens": 40000,
+      "max_output_tokens": 8000,
+      "max_wall_seconds": 120
+    },
+    "usage": {
+      "input_tokens": null,
+      "output_tokens": null,
+      "estimated_input_tokens": 1800,
+      "estimated_output_tokens": null,
+      "usage_source": "unavailable",
+      "api_calls": 2,
+      "tool_calls": 3,
+      "wall_time_seconds": 12.0,
+      "cost_usd": null,
+      "currency": "USD",
+      "price_table_version": null
+    }
   },
-  "budget_limits": {
-    "max_input_tokens": 40000,
-    "max_output_tokens": 8000,
-    "max_model_calls": 24,
-    "max_tool_calls": 24,
-    "max_wall_seconds": 120
-  },
-  "usage": {
-    "input_tokens": null,
-    "output_tokens": null,
-    "usage_source": "not_reported",
-    "estimated_input_tokens": null,
-    "estimated_output_tokens": null,
-    "api_calls": 0,
-    "tool_calls": 0,
-    "wall_time_seconds": null,
-    "cost": null,
-    "currency": "USD",
-    "price_table_version": null
+  "metrics": {
+    "correctness": {
+      "status": "unavailable",
+      "reason": "trusted hidden-test evaluation is not implemented"
+    },
+    "reasoning": {"status": "not_implemented"},
+    "robustness": {"status": "not_implemented"},
+    "efficiency": {"status": "available"},
+    "maintainability": {"status": "not_implemented"}
   },
   "artifacts": {
+    "output_digest": "sha256:<output-digest>",
     "patch_digest": null,
-    "trace_digest": null,
+    "trace_digest": "sha256:<trace-digest>",
     "test_report_digest": null
   },
+  "output": {},
   "stop_reason": null
 }
 ```
 
-Placeholder values above are illustrative and must be replaced with actual values in real reports.
+The report deliberately keeps provider-reported usage separate from local estimates. Cost remains null until a versioned price table is configured.
