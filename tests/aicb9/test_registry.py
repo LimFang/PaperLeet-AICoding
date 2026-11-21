@@ -118,9 +118,9 @@ def test_v2_metadata_rejects_invalid_inputs(schema_root, case, expected):
         elif case == "invalid_strategy":
             task["strategies"]["planned"].append("S4")
         elif case == "duplicate_strategy":
-            task["strategies"]["planned"].append("S0")
-        elif case == "strategy_overlap":
             task["strategies"]["supported"].append("S0")
+        elif case == "strategy_overlap":
+            task["strategies"]["planned"].append("S0")
         elif case == "negative_budget":
             task["runtime"]["max_tool_calls"] = -1
         elif case == "boolean_budget":
