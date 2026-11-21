@@ -224,10 +224,10 @@ def test_agent_runner_captures_final_diff_changed_files_and_public_test_output(t
     subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True)
     source = tmp_path / "src" / "worker.py"
     source.parent.mkdir()
-    source.write_text("def run():\\n    return False\\n", encoding="utf-8")
+    source.write_text("def run():\n    return False\n", encoding="utf-8")
     tests_dir = tmp_path / "tests" / "public"
     tests_dir.mkdir(parents=True)
-    (tests_dir / "test_public.py").write_text("def test_public_contract():\\n    assert True\\n", encoding="utf-8")
+    (tests_dir / "test_public.py").write_text("def test_public_contract():\n    assert True\n", encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(
         ["git", "-c", "user.name=PaperLeet", "-c", "user.email=paperleet@example.invalid",
