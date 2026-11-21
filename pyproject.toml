@@ -18,6 +18,9 @@ paperleet-benchmark = "paperleet.benchmark.cli:main"
 [tool.setuptools.packages.find]
 include = ["paperleet*"]
 
+[tool.setuptools.package-data]
+paperleet = ["benchmark/schemas/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests", "problems"]
 addopts = "--import-mode=importlib"
