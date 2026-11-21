@@ -1,4 +1,5 @@
 """S2 tool-augmented single-prompt strategy."""
+import hashlib
 from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage, _validate_single_prompt_messages
 
 
@@ -26,4 +27,8 @@ class ToolAugmentedSinglePrompt:
             usage=_provider_usage(response),
             api_calls=1,
             evidence_provenance=request.evidence.provenance,
+            metadata={
+                "evidence_digest": "sha256:" + hashlib.sha256(request.evidence.content.encode("utf-8")).hexdigest(),
+                "evidence_characters": len(request.evidence.content),
+            },
         )
