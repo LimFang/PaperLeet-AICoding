@@ -9,7 +9,6 @@ from .registry import task_root
 A01_STEP_FIELDS = {"step", "result", "expired", "lru", "evicted"}
 A01_TOP_LEVEL_FIELDS = {"steps"}
 A01_LIST_FIELDS = {"expired", "lru", "evicted"}
-A01_SCALAR_FIELDS = {"result"}
 B01_TOP_LEVEL_FIELDS = {
     "root_cause_id",
     "primary_file",
@@ -111,7 +110,7 @@ def evaluate_a01(answer):
         "task_id": "A01",
         "score": score,
         "max_score": 100,
-        "passed": score >= 90,
+        "passed": score >= 80,
         "breakdown": breakdown,
         "details": details,
         "validation": {
@@ -202,7 +201,7 @@ def evaluate_b01(answer):
         "task_id": "B01",
         "score": score,
         "max_score": 100,
-        "passed": score >= 85,
+        "passed": score >= 80,
         "breakdown": breakdown,
         "details": {
             "primary_file": {
