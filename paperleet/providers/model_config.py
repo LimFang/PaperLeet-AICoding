@@ -16,14 +16,10 @@ class ModelConfig:
     timeout: float = 60.0
 
     def __post_init__(self):
-        if not self.provider or not self.provider.strip():
-            raise ValueError("provider must be a non-empty string")
-        if not self.model or not self.model.strip():
-            raise ValueError("model must be a non-empty model ID")
-        if not self.base_url or not self.base_url.strip():
-            raise ValueError("base_url must be a non-empty URL")
-        if not self.api_key or not self.api_key.strip():
-            raise ValueError("API key is required")
+        for name, value in (("provider", self.provider), ("model", self.model),
+                            ("base_url", self.base_url), ("api_key", self.api_key)):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
         if isinstance(self.timeout, bool) or not isinstance(self.timeout, (int, float)) or not math.isfinite(self.timeout) or self.timeout <= 0:
             raise ValueError("timeout must be a positive finite number")
 
