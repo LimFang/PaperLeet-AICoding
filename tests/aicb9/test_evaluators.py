@@ -17,6 +17,9 @@ def test_a01_reference_trace_scores_full_marks():
     report = evaluate_a01(answer)
     assert report["score"] == 100
     assert report["passed"]
+    assert report["task_id"] == "A01"
+    assert report["scoring_mode"] == "deterministic_rubric"
+    assert report["details"]["result"]["matched_steps"] == 6
 
 
 def test_a01_missing_result_does_not_match_explicit_null():
@@ -36,6 +39,10 @@ def test_b01_reference_diagnosis_scores_full_marks():
     report = evaluate_b01(answer)
     assert report["score"] == 100
     assert report["passed"]
+    assert report["task_id"] == "B01"
+    assert report["scoring_mode"] == "deterministic_rubric"
+    assert report["details"]["evidence"]["precision"] == 1.0
+    assert report["details"]["evidence"]["recall"] == 1.0
 
 
 def test_wrong_b01_root_cause_loses_points():
