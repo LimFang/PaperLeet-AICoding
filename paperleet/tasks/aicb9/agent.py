@@ -6,6 +6,7 @@ prototypes only; it is not a hardened multi-tenant code execution service.
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 import json
+import math
 import os
 import subprocess
 import sys
@@ -34,6 +35,7 @@ class Budget:
     input_tokens: int = 0
     output_tokens: int = 0
     estimated_input_tokens: int = 0
+    estimated_output_tokens: int = 0
     input_usage_complete: bool = True
     output_usage_complete: bool = True
 
@@ -45,7 +47,7 @@ class Budget:
         self.check_time()
         if self.input_tokens + self.estimated_input_tokens + estimated_input_tokens > self.max_input_tokens:
             raise BudgetExceeded("estimated input-token budget exceeded")
-        remaining_output = self.max_output_tokens - self.output_tokens
+        remaining_output = self.max_output_tokens - self.output_tokens - self.estimated_output_tokens
         if remaining_output <= 0:
             raise BudgetExceeded("output-token budget exceeded")
         self.api_calls += 1
@@ -57,7 +59,7 @@ class Budget:
             raise BudgetExceeded("tool-call budget exceeded")
         self.tool_calls += 1
 
-    def add_usage(self, usage, estimated_input_tokens=0):
+    def add_usage(self, usage, estimated_input_tokens=0, estimated_output_tokens=0):
         usage = usage if isinstance(usage, dict) else {}
         prompt_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
         completion_tokens = usage.get("completion_tokens", usage.get("output_tokens"))
@@ -68,10 +70,13 @@ class Budget:
             self.input_tokens += int(prompt_tokens)
         if completion_tokens is None:
             self.output_usage_complete = False
+            self.estimated_output_tokens += estimated_output_tokens
         else:
             self.output_tokens += int(completion_tokens)
         if self.input_tokens > self.max_input_tokens or self.output_tokens > self.max_output_tokens:
             raise BudgetExceeded("provider-reported token budget exceeded")
+        if self.output_tokens + self.estimated_output_tokens > self.max_output_tokens:
+            raise BudgetExceeded("estimated output-token budget exceeded")
         if self.input_tokens + self.estimated_input_tokens > self.max_input_tokens:
             raise BudgetExceeded("estimated input-token budget exceeded")
 
@@ -161,12 +166,26 @@ class TaskWorkspace:
     def submit_plan(self, plan):
         if self.plan is not None:
             raise ToolRejected("the initial plan is immutable; submit revisions as ordinary messages")
+        if not isinstance(plan, dict):
+            raise ToolRejected("plan must be an object")
         required = ("root_cause", "affected_files", "expected_invariants", "test_plan", "risk_factors")
         if any(key not in plan for key in required):
             raise ToolRejected("plan is missing required fields")
-        if not str(plan["root_cause"]).strip():
-            raise ToolRejected("root_cause cannot be empty")
-        self.plan = {key: plan.get(key) for key in (*required, "evidence")}
+        if not isinstance(plan["root_cause"], str) or not plan["root_cause"].strip():
+            raise ToolRejected("root_cause must be a non-empty string")
+        normalized = {"root_cause": plan["root_cause"].strip()}
+        for key in required[1:]:
+            value = plan[key]
+            if not isinstance(value, list) or not value or any(
+                not isinstance(item, str) or not item.strip() for item in value
+            ):
+                raise ToolRejected(f"{key} must be a non-empty list of strings")
+            normalized[key] = [item.strip() for item in value]
+        evidence = plan.get("evidence", [])
+        if not isinstance(evidence, list) or any(not isinstance(item, str) or not item.strip() for item in evidence):
+            raise ToolRejected("evidence must be a list of non-empty strings")
+        normalized["evidence"] = [item.strip() for item in evidence]
+        self.plan = normalized
         return {"accepted": True, "immutable": True, "plan": self.plan}
 
     def apply_patch(self, path, old_text, new_text):
@@ -183,23 +202,42 @@ class TaskWorkspace:
         return {"updated": path, "replacements": 1}
 
     def run_public_tests(self):
+        started = time.monotonic()
         test_dir = self.root / "tests" / "public"
         if not test_dir.is_dir():
-            return {"returncode": 2, "output": "No tests/public directory in this task workspace"}
+            return {
+                "returncode": 2,
+                "output": "No tests/public directory in this task workspace",
+                "duration_s": 0.0,
+                "timed_out": False,
+            }
         env = os.environ.copy()
         env.pop("AICB9_API_KEY", None)
         env.pop("DEEPSEEK_API_KEY", None)
         try:
             proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "tests/public"], cwd=self.root,
                                   text=True, capture_output=True, timeout=self.command_timeout, env=env)
-            return {"returncode": proc.returncode, "output": (proc.stdout + proc.stderr)[-10000:]}
+            return {
+                "returncode": proc.returncode,
+                "output": (proc.stdout + proc.stderr)[-10000:],
+                "duration_s": round(time.monotonic() - started, 4),
+                "timed_out": False,
+            }
         except subprocess.TimeoutExpired:
-            return {"returncode": 124, "output": "Public tests exceeded the command timeout"}
+            return {
+                "returncode": 124,
+                "output": "Public tests exceeded the command timeout",
+                "duration_s": round(time.monotonic() - started, 4),
+                "timed_out": True,
+            }
 
-    def _git(self, *args):
+    def _git(self, *args, max_output_chars=10000):
         try:
             proc = subprocess.run(["git", *args], cwd=self.root, text=True, capture_output=True, timeout=5)
-            return {"returncode": proc.returncode, "output": (proc.stdout + proc.stderr)[-10000:]}
+            output = proc.stdout + proc.stderr
+            if max_output_chars is not None:
+                output = output[-max_output_chars:]
+            return {"returncode": proc.returncode, "output": output}
         except (FileNotFoundError, subprocess.TimeoutExpired):
             return {"returncode": 127, "output": "git is unavailable or timed out"}
 
@@ -208,6 +246,25 @@ class TaskWorkspace:
 
     def git_status(self):
         return self._git("status", "--short", "--", ".")
+
+    def final_snapshot(self):
+        diff = self._git("diff", "--no-ext-diff", "--", ".", max_output_chars=None)
+        names = self._git("diff", "--name-only", "--", ".")
+        check = self._git("diff", "--check", "--", ".")
+        status = self._git("status", "--short", "--", ".")
+        changed_files = (
+            [line for line in names["output"].splitlines() if line.strip()]
+            if names["returncode"] == 0 else []
+        )
+        return {
+            "final_diff": diff["output"] if diff["returncode"] == 0 else "",
+            "changed_files": changed_files,
+            "diff_check": check,
+            "working_tree_status": status,
+            "snapshot_available": all(
+                item["returncode"] == 0 for item in (diff, names, check, status)
+            ),
+        }
 
     def dispatch(self, name, arguments):
         if name == "list_files": return self.list_files(arguments.get("pattern", "**/*.py"))
@@ -241,13 +298,17 @@ class AgentRunner:
                 estimated = estimate_tokens(messages)
                 max_tokens = self.budget.reserve_request(estimated, 2048)
                 response = self.client.complete(messages, TOOL_DEFINITIONS, max_tokens)
-                self.budget.add_usage(response.get("usage"), estimated_input_tokens=estimated)
+                choice = response.get("choices", [{}])[0]
+                message = choice.get("message", {})
+                self.budget.add_usage(
+                    response.get("usage"),
+                    estimated_input_tokens=estimated,
+                    estimated_output_tokens=estimate_tokens([message]),
+                )
                 self.budget.check_time()
             except BudgetExceeded as exc:
                 stopped_reason = str(exc)
                 break
-            choice = response.get("choices", [{}])[0]
-            message = choice.get("message", {})
             messages.append(message)
             calls = message.get("tool_calls", []) or []
             if not calls:
@@ -285,26 +346,71 @@ class AgentRunner:
             stopped_reason = "maximum agent rounds reached"
         input_rate = os.environ.get("AICB9_INPUT_PRICE_PER_M")
         output_rate = os.environ.get("AICB9_OUTPUT_PRICE_PER_M")
-        estimated_cost = None
-        usage_complete = self.budget.api_calls > 0 and self.budget.input_usage_complete and self.budget.output_usage_complete
-        if input_rate is not None and output_rate is not None and usage_complete:
-            estimated_cost = round(
-                self.budget.input_tokens * float(input_rate) / 1_000_000
-                + self.budget.output_tokens * float(output_rate) / 1_000_000,
+        price_table_version = os.environ.get("AICB9_PRICE_TABLE_VERSION")
+        cost_usd = None
+        try:
+            input_rate_value = float(input_rate) if input_rate is not None else None
+            output_rate_value = float(output_rate) if output_rate is not None else None
+            valid_rates = (
+                input_rate_value is not None and output_rate_value is not None
+                and math.isfinite(input_rate_value) and math.isfinite(output_rate_value)
+                and input_rate_value >= 0 and output_rate_value >= 0
+            )
+        except (TypeError, ValueError):
+            valid_rates = False
+        usage_complete = (
+            self.budget.api_calls > 0
+            and self.budget.input_usage_complete
+            and self.budget.output_usage_complete
+        )
+        if valid_rates and price_table_version and usage_complete:
+            cost_usd = round(
+                self.budget.input_tokens * input_rate_value / 1_000_000
+                + self.budget.output_tokens * output_rate_value / 1_000_000,
                 8,
             )
+        snapshot = self.workspace.final_snapshot()
+        public_test_runs = [
+            item["result"] for item in self.trace
+            if item.get("tool") == "run_public_tests" and isinstance(item.get("result"), dict)
+        ]
+        public_test_result = public_test_runs[-1] if public_test_runs else None
         return {
             "task_id": "C01",
             "final_text": final_text,
             "plan": self.workspace.plan,
             "trace": self.trace,
+            "final_diff": snapshot["final_diff"],
+            "changed_files": snapshot["changed_files"],
+            "diff_check": snapshot["diff_check"],
+            "working_tree_status": snapshot["working_tree_status"],
+            "snapshot_available": snapshot["snapshot_available"],
+            "public_test_runs": public_test_runs,
+            "public_test_result": public_test_result,
             "budget": {
                 "tool_calls": self.budget.tool_calls,
                 "api_calls": self.budget.api_calls,
-                "input_tokens": self.budget.input_tokens if self.budget.api_calls and self.budget.input_usage_complete else None,
-                "output_tokens": self.budget.output_tokens if self.budget.api_calls and self.budget.output_usage_complete else None,
-                "estimated_input_tokens": self.budget.estimated_input_tokens or None,
-                "estimated_cost_usd": estimated_cost,
+                "input_tokens": (
+                    self.budget.input_tokens
+                    if self.budget.api_calls and self.budget.input_usage_complete else None
+                ),
+                "output_tokens": (
+                    self.budget.output_tokens
+                    if self.budget.api_calls and self.budget.output_usage_complete else None
+                ),
+                "estimated_input_tokens": (
+                    self.budget.input_tokens + self.budget.estimated_input_tokens
+                    if self.budget.api_calls and not self.budget.input_usage_complete else None
+                ),
+                "estimated_output_tokens": (
+                    self.budget.output_tokens + self.budget.estimated_output_tokens
+                    if self.budget.api_calls and not self.budget.output_usage_complete else None
+                ),
+                "input_usage_complete": self.budget.input_usage_complete,
+                "output_usage_complete": self.budget.output_usage_complete,
+                "cost_usd": cost_usd,
+                "estimated_cost_usd": cost_usd,
+                "price_table_version": price_table_version if cost_usd is not None else None,
                 "wall_time_s": round(time.monotonic() - self.budget.started_at, 3),
                 "limits": {"max_tool_calls": self.budget.max_tool_calls,
                            "max_input_tokens": self.budget.max_input_tokens,

@@ -85,3 +85,51 @@ def test_cli_deterministic_evaluation_requires_no_model_api(tmp_path, monkeypatc
     assert report["manifest"]["provider"] == "local"
     assert report["metrics"]["correctness"]["score"] == 100
     assert report["metrics"]["efficiency"]["api_calls"] == 0
+
+def test_cli_evaluates_saved_c01_agent_report_without_model_api(tmp_path, monkeypatch, capsys):
+    report_path = tmp_path / "c01-agent-report.json"
+    report_path.write_text(json.dumps({
+        "task_id": "C01",
+        "plan": {
+            "root_cause": "TransientError is treated as terminal.",
+            "affected_files": ["src/taskflow/worker.py"],
+            "expected_invariants": ["PermanentError is not retried."],
+            "test_plan": ["run public tests"],
+            "risk_factors": ["duplicate terminal events"],
+        },
+        "trace": [{
+            "tool": "run_public_tests",
+            "result": {"returncode": 0, "output": "2 passed", "timed_out": False},
+        }],
+        "final_diff": "diff --git a/src/taskflow/worker.py b/src/taskflow/worker.py\n+retry",
+        "changed_files": ["src/taskflow/worker.py"],
+        "diff_check": {"returncode": 0, "output": ""},
+        "snapshot_available": True,
+        "budget": {
+            "api_calls": 2, "tool_calls": 1,
+            "input_tokens": 100, "output_tokens": 50,
+            "estimated_input_tokens": None, "estimated_output_tokens": None,
+            "wall_time_s": 5.0,
+            "limits": {
+                "max_tool_calls": 24, "max_input_tokens": 40000,
+                "max_output_tokens": 8000, "max_wall_seconds": 120,
+            },
+        },
+        "stopped_reason": None,
+        "hidden_test_score": 55,
+    }), encoding="utf-8")
+
+    def unexpected_model_config(*args, **kwargs):
+        raise AssertionError("offline C01 evaluation must not configure a model")
+    monkeypatch.setattr(cli.ModelConfig, "from_env", staticmethod(unexpected_model_config))
+
+    result = cli.main([
+        "evaluate", "--task", "C01", "--answer", str(report_path)
+    ])
+    run_report = json.loads(capsys.readouterr().out)
+    assert result == 0
+    assert run_report["status"] == "succeeded"
+    assert run_report["manifest"]["provider"] == "local"
+    assert run_report["manifest"]["strategy"] == "DETERMINISTIC"
+    assert run_report["metrics"]["correctness"]["hidden_tests"]["score"] is None
+    assert run_report["metrics"]["correctness"]["public_local_score"]["earned_points"] == 45

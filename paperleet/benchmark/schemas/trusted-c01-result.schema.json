@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperleet.dev/schemas/trusted-c01-result-1.0.json",
+  "title": "Trusted C01 Hidden-Test Result Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "run_id",
+    "task_version",
+    "fixture_digest",
+    "rubric_version",
+    "issuer",
+    "key_id",
+    "signature_algorithm",
+    "evaluated_at",
+    "hidden_test_score",
+    "max_hidden_test_score",
+    "test_suite_digest",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "task_id": {
+      "const": "C01"
+    },
+    "run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "task_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fixture_digest": {
+      "type": "string",
+      "pattern": "^git-tree-sha1:[0-9a-f]{40}$"
+    },
+    "rubric_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issuer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "key_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "signature_algorithm": {
+      "const": "Ed25519"
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hidden_test_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 55
+    },
+    "max_hidden_test_score": {
+      "const": 55
+    },
+    "test_suite_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "minLength": 80
+    }
+  }
+}

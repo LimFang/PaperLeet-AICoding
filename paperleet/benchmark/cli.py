@@ -152,7 +152,7 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     parser = argparse.ArgumentParser(prog="paperleet-benchmark")
     commands = parser.add_subparsers(dest="command", required=True)
     evaluate = commands.add_parser("evaluate", help="score an existing structured answer locally; no model API required")
-    evaluate.add_argument("--task", required=True, choices=("A01", "B01"))
+    evaluate.add_argument("--task", required=True, choices=("A01", "B01", "C01"))
     evaluate.add_argument("--answer", required=True, type=Path)
     evaluate.add_argument("--output", type=Path, help="write the JSON report to this path instead of stdout")
 
@@ -207,6 +207,12 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
                 )
                 if check.returncode != 0:
                     raise ValueError("--workspace must point to an existing Git repository")
+                status = subprocess.run(
+                    ["git", "status", "--porcelain", "--untracked-files=all"],
+                    cwd=workspace, capture_output=True, text=True,
+                )
+                if status.returncode != 0 or status.stdout.strip():
+                    raise ValueError("--workspace must have a clean Git working tree before the run")
             else:
                 temporary = tempfile.TemporaryDirectory(prefix=f"paperleet-{task['id'].lower()}-")
                 workspace = Path(temporary.name) / "repository"

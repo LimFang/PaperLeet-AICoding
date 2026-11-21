@@ -39,12 +39,18 @@ class AgenticStrategy:
         input_tokens = budget.get("input_tokens")
         output_tokens = budget.get("output_tokens")
         usage = None
-        if input_tokens is not None or output_tokens is not None:
+        if (
+            input_tokens is not None or output_tokens is not None
+            or budget.get("cost_usd") is not None
+        ):
             usage = {
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
                 "source": "provider_reported",
             }
+            if budget.get("cost_usd") is not None and budget.get("price_table_version"):
+                usage["cost_usd"] = budget["cost_usd"]
+                usage["price_table_version"] = budget["price_table_version"]
         return StrategyResult(
             strategy=self.strategy_id,
             output=report,
@@ -56,7 +62,7 @@ class AgenticStrategy:
                 "stop_reason": report.get("stopped_reason"),
                 "prompt_hash": prompt_hash,
                 "tool_schema_hash": tool_schema_hash,
-                "estimated_input_tokens": estimated_input_tokens,
-                "estimated_output_tokens": None,
+                "estimated_input_tokens": budget.get("estimated_input_tokens", estimated_input_tokens),
+                "estimated_output_tokens": budget.get("estimated_output_tokens"),
             },
         )

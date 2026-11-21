@@ -3,13 +3,16 @@
 import argparse
 from importlib import import_module
 import json
+import subprocess
 from pathlib import Path
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from paperleet.tasks.aicb9.agent import AgentRunner, Budget, OpenAICompatibleClient
+from paperleet.providers import ModelConfig, OpenAICompatibleClient
+from paperleet.tasks.aicb9.agent import AgentRunner, Budget
 from paperleet.tasks.aicb9.registry import load_registry
 
 
@@ -38,7 +41,26 @@ def _task_limits(task, args):
             for name, default in defaults.items()}
 
 
-def main(argv=None):
+def _validate_clean_git_workspace(workspace):
+    root = Path(workspace).resolve()
+    check = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=root, capture_output=True, text=True,
+    )
+    if check.returncode != 0:
+        raise ValueError("--workspace must be an existing Git repository")
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all"],
+        cwd=root, capture_output=True, text=True,
+    )
+    if status.returncode != 0:
+        raise ValueError("could not inspect workspace Git status")
+    if status.stdout.strip():
+        raise ValueError("--workspace must have a clean working tree before the run")
+    return root
+
+
+def main(argv=None, *, client_factory=None, config_factory=None):
     registry = load_registry()
     tasks_by_mode = {
         command: [task for task in registry if task.get("cli", {}).get("command") == command]
@@ -61,7 +83,70 @@ def main(argv=None):
     agent.add_argument("--max-input-tokens", type=int)
     agent.add_argument("--max-output-tokens", type=int)
     agent.add_argument("--max-wall-seconds", type=float)
+    smoke = commands.add_parser("smoke", help="make one explicitly confirmed real model API request")
+    smoke.add_argument("--model", required=True, help="exact model ID enabled for your API account")
+    smoke.add_argument(
+        "--confirm-paid-api",
+        action="store_true",
+        required=True,
+        help="confirm that this command sends one real API request and may incur charges",
+    )
     args = parser.parse_args(argv)
+
+    if args.command == "smoke":
+        try:
+            factory = config_factory or ModelConfig.from_env
+            config = factory(model=args.model)
+        except ValueError as exc:
+            parser.error(str(exc))
+        client = (client_factory or OpenAICompatibleClient)(config=config)
+        messages = [
+            {
+                "role": "system",
+                "content": "This is an API connectivity smoke test. Reply with exactly PAPERLEET_SMOKE_OK.",
+            },
+            {"role": "user", "content": "Reply with exactly PAPERLEET_SMOKE_OK."},
+        ]
+        started = time.monotonic()
+        try:
+            response = client.complete(messages, [], 32)
+            choice = response.get("choices", [{}])[0]
+            message = choice.get("message", {})
+            content = message.get("content") if isinstance(message, dict) else None
+            usage = response.get("usage", {})
+            usage = usage if isinstance(usage, dict) else {}
+            input_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
+            output_tokens = usage.get("completion_tokens", usage.get("output_tokens"))
+            matched = isinstance(content, str) and content.strip() == "PAPERLEET_SMOKE_OK"
+            report = {
+                "status": "succeeded" if matched else "unexpected_response",
+                "provider": config.provider,
+                "model": config.model,
+                "api_calls": 1,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "usage_source": (
+                    "provider_reported"
+                    if input_tokens is not None or output_tokens is not None else "unavailable"
+                ),
+                "wall_time_seconds": round(time.monotonic() - started, 6),
+                "cost_usd": None,
+                "price_table_version": None,
+                "response": content,
+            }
+        except Exception as exc:
+            report = {
+                "status": "failed",
+                "provider": config.provider,
+                "model": config.model,
+                "api_calls": 1,
+                "wall_time_seconds": round(time.monotonic() - started, 6),
+                "error_type": type(exc).__name__,
+                "cost_usd": None,
+                "price_table_version": None,
+            }
+        print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+        return 0 if report["status"] == "succeeded" else 1
 
     task = next(task for task in tasks_by_mode[args.command] if task["id"] == args.task)
     if args.command == "evaluate":
@@ -73,11 +158,15 @@ def main(argv=None):
         statement = (task_directory / "statement.md").read_text(encoding="utf-8")
         workflow = args.instruction or task_directory / "agent_instruction.md"
         instruction = f"{statement}\n\n{workflow.read_text(encoding='utf-8')}"
-        client = OpenAICompatibleClient()
+        client = (client_factory or OpenAICompatibleClient)()
+        try:
+            workspace = _validate_clean_git_workspace(args.workspace)
+        except (OSError, ValueError) as exc:
+            parser.error(str(exc))
         limits = _task_limits(task, args)
         budget = Budget(limits["max_tool_calls"], limits["max_input_tokens"],
                         limits["max_output_tokens"], limits["max_wall_seconds"])
-        report = AgentRunner(client, args.workspace, budget=budget).run(instruction)
+        report = AgentRunner(client, workspace, budget=budget).run(instruction)
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
     if args.command in ("evaluate", "mutate") and not report.get("passed"):
         return 1

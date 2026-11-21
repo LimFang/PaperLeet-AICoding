@@ -78,13 +78,24 @@ The task specification currently declares these weights:
 | Efficiency | 10 |
 | Patch quality | 5 |
 
-The public/local pilot does not currently implement the trusted hidden-test component. Therefore:
-- public/local reports must mark the 55-point hidden-test component as unavailable;
-- the Agent cannot supply or self-report this score;
-- the remaining 45 points must not be silently renormalized to 100;
-- an official composite score is unavailable until a trusted evaluator provides the hidden-test result under a versioned rubric.
+**Rubric version: 1.1.0.** The public/local evaluator implements only the following 45 points:
 
-The current C01 prototype uses a mock client in automated tests. A real API run is opt-in and must record actual provider usage and the configured budget.
+| Component | Weight | Public/local rule |
+|---|---:|---|
+| Pre-edit plan | 15 | Full credit only when the immutable plan contains a non-empty root cause, affected-file list, invariants, test plan, and risk list. This is a structural completeness check, not semantic root-cause grading. |
+| Verification | 15 | Full credit when the latest recorded public-test run exits successfully; otherwise zero. No run is zero verification credit. |
+| Efficiency | 10 | Full credit when the run finishes without a budget stop and observed or separately labelled estimated input/output usage, tool calls, and wall time remain within declared limits. |
+| Patch quality | 5 | Full credit for a non-empty final Git diff, at least one changed file, a clean `git diff --check`, and no protected test/spec/private paths. If a Git snapshot cannot be obtained, this component is unavailable. |
+
+The 55-point hidden-test component remains trusted-only and unavailable in public/local runs. Therefore:
+- public/local reports always set hidden-test score to null with status `unavailable`;
+- the Agent's final text, tool arguments, report fields, and CLI arguments cannot supply or override this score;
+- the local score is reported as earned points out of the available portion of the 45 public/local points; it is not rescaled to 100;
+- the official 100-point composite remains null until a separate trusted evaluator returns a verifiable result.
+
+C01 run artifacts include the final diff, changed files, public-test output, immutable plan, ordered tool trace, provider usage or clearly labelled estimates, budget limits, and stop reason. Cost remains null unless complete provider usage and a versioned price-table identifier are available.
+
+The real API smoke command is explicitly opt-in and requires a confirmation flag. Automated tests and CI use fake clients only. The separate signed hidden-test envelope and verification boundary are specified in [Trusted C01 Evaluation](trusted-evaluation.md); the public runner does not ingest it.
 
 ## 3. Future task scoring
 

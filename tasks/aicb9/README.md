@@ -6,7 +6,7 @@
 
 AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single-Prompt、S2 Tool-Augmented Single-Prompt 和 S3 Agentic。S0–S3 策略适配器和统一 Runner 已实现；每道题可运行的策略由 `task.yaml` 的 `strategies.supported` 声明。当前 A01/B01 支持 S0–S2，C01 支持 S3，B03 尚未接入统一 Runner。原有 `scripts/aicb9.py` CLI 保持兼容。协议和指标见 [Benchmark Protocol](../../docs/benchmark-protocol.md)、[Evaluation Metrics](../../docs/evaluation-metrics.md)、[Reproducibility](../../docs/reproducibility.md) 和 [Scoring Rules](../../docs/scoring-rules.md)。
 
-当前状态需要特别区分：A01/B01 使用确定性结构化评分；B03 仓库中可见的六个 Mutants 是本地开发/演示样例，不是正式隐藏评测资产；C01 的本地 Agent 原型尚未接入可信隐藏测试评分，因此本地报告不能声称获得了隐藏测试分数。
+当前状态需要特别区分：A01/B01 使用确定性结构化评分；B03 仓库中可见的六个 Mutants 是本地开发/演示样例，不是正式隐藏评测资产；C01 已实现 45 分 public/local 评分；55 分隐藏测试仍由独立可信评测端负责，本地报告不能声称获得隐藏测试分数。
 
 | ID | 题目 | 形式 | 模型 API |
 |---|---|---|---|
@@ -41,6 +41,7 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 ```bash
 paperleet-benchmark evaluate --task A01 --answer tasks/aicb9/A01/reference_trace.json
 paperleet-benchmark evaluate --task B01 --answer /path/to/diagnosis.json
+paperleet-benchmark evaluate --task C01 --answer /path/to/c01-agent-report.json
 ```
 
 模型策略运行需要配置 API：
@@ -68,6 +69,21 @@ paperleet-benchmark run --task C01 --model "<model-id>" --strategy s3 \
 ```
 
 Runner 会记录任务/Fixture 版本、策略、模型、Prompt Hash、运行时间、调用数、Token 使用情况和产物摘要。当前 OpenAI-compatible adapter 不向模型请求传递随机种子，因此 `seed` 只记录为实验元数据，报告会明确标记 `seed_applied: false`。未获得 Provider usage 时，Token 字段保持 `null`；成本在引入版本化价格表前保持 `null`。
+
+C01 public/local 报告只计算可验证的 45 分：计划完整性 15、公开测试验证 15、预算合规 10、补丁质量 5。隐藏测试 55 分始终为 `unavailable`，不会读取 Agent 自报分数；45 分不会重新归一化为 100。报告包含最终 diff、changed files、公开测试输出、计划、工具轨迹、usage/estimate、预算与停止原因。离线评分现有 Agent 报告不需要 API。
+
+如需检查真实 API 连通性，必须显式确认可能产生费用：
+```bash
+python scripts/aicb9.py smoke --model "<model-id>" --confirm-paid-api
+```
+
+如需计算费用，除完整 Provider usage 外，还必须配置带版本号的价格表：
+```bash
+export AICB9_INPUT_PRICE_PER_M="..."
+export AICB9_OUTPUT_PRICE_PER_M="..."
+export AICB9_PRICE_TABLE_VERSION="provider-model-YYYYMMDD"
+```
+缺少 usage 或价格表版本时，费用保持 `null`。
 
 当前可运行组合以各题 `task.yaml` 的 `strategies.supported` 为准：A01/B01 支持 S0/S1/S2，C01 支持 S3；B03 暂不支持统一 Runner。C01 的可信隐藏测试评分仍未实现，报告不会伪造隐藏测试分数。S3 本地执行仅适用于可信代码，不是公网不可信代码沙箱。
 
