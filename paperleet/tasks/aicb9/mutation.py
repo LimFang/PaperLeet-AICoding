@@ -13,6 +13,7 @@ import sys
 import tempfile
 
 from .registry import task_root
+from .security import task_subprocess_env
 
 
 def _run_variant(test_file, variant_root, timeout):
@@ -20,7 +21,7 @@ def _run_variant(test_file, variant_root, timeout):
     report_file.unlink(missing_ok=True)
     runner = Path(__file__).with_name("_pytest_outcomes.py")
     command = [sys.executable, str(runner), str(test_file), str(report_file)]
-    env = {**os.environ, "PYTHONPATH": str(variant_root)}
+    env = task_subprocess_env(pythonpath=str(variant_root))
     try:
         proc = subprocess.run(
             command, cwd=variant_root, env=env, text=True, capture_output=True, timeout=timeout
