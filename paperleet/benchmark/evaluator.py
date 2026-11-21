@@ -4,6 +4,7 @@ import re
 from typing import Any, Mapping
 
 from paperleet.tasks.aicb9.evaluators import evaluate_a01, evaluate_b01
+from paperleet.tasks.aicb9.c01_evaluator import evaluate_c01_public
 from .metrics import evidence_metrics
 
 
@@ -73,21 +74,24 @@ def evaluate_task(task: Mapping[str, Any], strategy_result) -> dict:
         }
 
     if task_id == "C01":
-        trace = strategy_result.trace
-        public_test_runs = [
-            item.get("result")
-            for item in trace
-            if item.get("tool") == "run_public_tests"
-        ]
+        local = evaluate_c01_public(
+            strategy_result.output,
+            rubric_version=task.get("rubric_version", "0.0.0"),
+        )
+        components = local["components"]
         return {
             "correctness": _unavailable(
                 "unavailable",
+                score=None,
+                max_score=55,
                 reason="trusted hidden-test evaluation is not implemented in the public/local runner",
-                public_test_runs=public_test_runs,
+                hidden_tests=local["hidden_tests"],
+                public_local_score=local["public_local_score"],
             ),
-            "reasoning": _unavailable("not_implemented"),
-            "robustness": _unavailable("not_implemented"),
-            "maintainability": _unavailable("not_implemented"),
+            "reasoning": components["pre_edit_plan"],
+            "robustness": components["verification"],
+            "efficiency": components["efficiency"],
+            "maintainability": components["patch_quality"],
         }
 
     raise ValueError(f"No generic benchmark evaluator is registered for task {task_id}")
