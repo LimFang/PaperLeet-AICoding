@@ -95,7 +95,7 @@ The 55-point hidden-test component remains trusted-only and unavailable in publi
 
 C01 run artifacts include the final diff, changed files, public-test output, immutable plan, ordered tool trace, provider usage or clearly labelled estimates, budget limits, and stop reason. Cost remains null unless complete provider usage and a versioned price-table identifier are available.
 
-The real API smoke command is explicitly opt-in and requires a confirmation flag. Automated tests and CI use fake clients only.
+The real API smoke command is explicitly opt-in and requires a confirmation flag. Automated tests and CI use fake clients only. The separate signed hidden-test envelope and verification boundary are specified in [Trusted C01 Evaluation](trusted-evaluation.md); the public runner does not ingest it.
 
 ## 3. Future task scoring
 
