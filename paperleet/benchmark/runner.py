@@ -1,4 +1,5 @@
 """Generic task/strategy runner for reproducible AICB-9 experiments."""
+from datetime import datetime, timezone
 import time
 from typing import Any, Mapping
 
@@ -45,7 +46,7 @@ class BenchmarkRunner:
         if seed is not None and type(seed) is not int:
             raise ValueError("seed must be an integer or null")
 
-        started_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z")
+        started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         started = time.monotonic()
         strategy_result = None
         status = "succeeded"
@@ -76,7 +77,7 @@ class BenchmarkRunner:
         if stop_reason is None:
             stop_reason = strategy_result.metadata.get("stop_reason")
         task_metrics["efficiency"] = efficiency_metrics(strategy_result, wall_time)
-        finished_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z")
+        finished_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         return build_run_report(
             task=task,
             strategy_result=strategy_result,
