@@ -63,7 +63,7 @@ class BenchmarkRunner:
         except Exception as exc:
             status = "failed"
             stop_reason = type(exc).__name__
-            if strategy_result is None:
+            if not isinstance(strategy_result, StrategyResult):
                 strategy_result = StrategyResult(
                     strategy=strategy_id,
                     output={"error_type": type(exc).__name__},
