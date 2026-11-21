@@ -1,6 +1,6 @@
 """Shared request/result contracts for benchmark strategies."""
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -67,6 +67,17 @@ class StrategyResult:
             "trace": [dict(item) for item in self.trace],
             "metadata": dict(self.metadata),
         }
+
+
+
+@runtime_checkable
+class BenchmarkStrategy(Protocol):
+    """Common execution interface implemented by every benchmark strategy."""
+
+    strategy_id: str
+
+    def run(self, request: StrategyRequest) -> StrategyResult:
+        ...
 
 
 def _append_user_context(messages: Sequence[Mapping[str, Any]], heading: str, content: str) -> list[dict]:
