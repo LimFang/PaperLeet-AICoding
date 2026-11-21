@@ -179,3 +179,9 @@ The following is an illustrative shape of the v0.2 report schema. Placeholder va
 ```
 
 The report deliberately keeps provider-reported usage separate from local estimates. Cost remains null until a versioned price table is configured.
+
+## 10. Trusted C01 evaluation
+
+The public/local C01 report must keep the hidden-test component unavailable. A separately operated trusted evaluator may return a signed result envelope matching the run ID, task version, fixture digest, and rubric version. The envelope schema, Ed25519 signing rules, and score-combination boundary are documented in [Trusted C01 Evaluation](trusted-evaluation.md).
+
+The Agent workspace and public CLI must never receive the hidden test suite, signing keys, or trusted hidden score. A JSON field supplied by an Agent is not a trusted result.
