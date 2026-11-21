@@ -125,10 +125,13 @@ def evaluate_b01(answer):
 
     catalog_path = task_root() / "B01" / "evidence_catalog.json"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-    valid_evidence_ids = {
-        item["id"] for item in catalog.get("evidence", [])
-        if isinstance(item, Mapping) and isinstance(item.get("id"), str)
-    }
+    if isinstance(catalog, Mapping):
+        valid_evidence_ids = {key for key, value in catalog.items() if isinstance(key, str) and isinstance(value, str)}
+    else:
+        valid_evidence_ids = {
+            item["id"] for item in catalog.get("evidence", [])
+            if isinstance(item, Mapping) and isinstance(item.get("id"), str)
+        }
     gold_evidence = {"pricing.calculate_total", "pricing.unit_rounding"}
     provided_evidence = set(payload.get("evidence_ids", []))
     matched_evidence = gold_evidence & provided_evidence
