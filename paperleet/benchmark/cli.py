@@ -138,7 +138,12 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     tasks = registry_loader()
     parser = argparse.ArgumentParser(prog="paperleet-benchmark")
     commands = parser.add_subparsers(dest="command", required=True)
-    run = commands.add_parser("run", help="run one registered benchmark task")
+    evaluate = commands.add_parser("evaluate", help="score an existing structured answer locally; no model API required")
+    evaluate.add_argument("--task", required=True, choices=("A01", "B01"))
+    evaluate.add_argument("--answer", required=True, type=Path)
+    evaluate.add_argument("--output", type=Path, help="write the JSON report to this path instead of stdout")
+
+    run = commands.add_parser("run", help="run one registered benchmark task with a model strategy")
     run.add_argument("--task", required=True, choices=[task["id"] for task in tasks])
     run.add_argument("--model", required=True, help="exact model ID; provider/base URL come from AICB9 environment settings")
     run.add_argument("--strategy", required=True, choices=("s0", "s1", "s2", "s3"))
@@ -152,6 +157,16 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     run.add_argument("--max-input-tokens", type=int)
     run.add_argument("--max-wall-seconds", type=float)
     args = parser.parse_args(argv)
+
+    if args.command == "evaluate":
+        report = BenchmarkRunner({}, tasks=tasks).evaluate(args.task, args.answer)
+        rendered = json.dumps(report, ensure_ascii=False, indent=2, default=str)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\\n", encoding="utf-8")
+        else:
+            print(rendered)
+        return 0 if report["status"] == "succeeded" else 1
 
     task = next(task for task in tasks if task["id"] == args.task)
     strategy_id = args.strategy.upper()
