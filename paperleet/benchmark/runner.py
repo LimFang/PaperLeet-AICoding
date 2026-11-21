@@ -1,5 +1,7 @@
 """Generic task/strategy runner for reproducible AICB-9 experiments."""
 from datetime import datetime, timezone
+import json
+from pathlib import Path
 import time
 from typing import Any, Mapping
 
@@ -90,4 +92,33 @@ class BenchmarkRunner:
             model_metadata=model_metadata,
             seed=seed,
             stop_reason=stop_reason,
+        )
+
+    def evaluate(self, task_id: str | int, answer) -> dict:
+        """Score an existing structured answer locally without constructing a model client."""
+        task = self.get_task(task_id)
+        if task["id"] not in ("A01", "B01"):
+            raise ValueError(f"Deterministic answer evaluation is not implemented for task {task['id']}")
+        if isinstance(answer, (str, Path)):
+            answer = json.loads(Path(answer).read_text(encoding="utf-8"))
+        request = StrategyRequest(max_output_tokens=1)
+        strategy_result = StrategyResult(strategy="DETERMINISTIC", output=answer)
+        started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        started = time.monotonic()
+        task_metrics = evaluate_task(task, strategy_result)
+        wall_time = time.monotonic() - started
+        task_metrics["efficiency"] = efficiency_metrics(strategy_result, wall_time)
+        finished_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        return build_run_report(
+            task=task,
+            strategy_result=strategy_result,
+            metrics=task_metrics,
+            status="succeeded",
+            started_at=started_at,
+            finished_at=finished_at,
+            wall_time_seconds=wall_time,
+            request=request,
+            model_metadata={"provider": "local"},
+            seed=None,
+            stop_reason=None,
         )
