@@ -1,6 +1,6 @@
 # AICB-9 Reproducibility
 
-**Status:** Required provenance contract for future benchmark runs. The current pilot does not yet implement the unified manifest/runner described here.
+**Status:** Required provenance contract for benchmark runs. The v0.2 runner emits the versioned manifest and report fields described here; provider seed forwarding and versioned price-table cost calculation remain unavailable.
 
 ## 1. Reproducibility objective
 
