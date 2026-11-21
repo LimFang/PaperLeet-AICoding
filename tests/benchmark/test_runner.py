@@ -51,6 +51,8 @@ def test_generic_runner_executes_deterministic_task_and_builds_manifest():
     assert report["metrics"]["correctness"]["passed"] is True
     assert report["metrics"]["efficiency"]["input_tokens"] == 120
     assert report["metrics"]["efficiency"]["output_tokens"] == 80
+    assert report["metrics"]["efficiency"]["estimated_input_tokens"] > 0
+    assert report["metrics"]["efficiency"]["estimated_output_tokens"] > 0
     assert report["metrics"]["efficiency"]["cost_usd"] is None
     assert report["manifest"]["task_id"] == "A01"
     assert report["manifest"]["task_version"] == "1.0.0"
