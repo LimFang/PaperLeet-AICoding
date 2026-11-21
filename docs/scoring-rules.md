@@ -25,7 +25,7 @@ The current deterministic rubric has a maximum of 100 points:
 | LRU order | 20 |
 | Evicted keys | 15 |
 
-The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. The valid step domain is exactly 1–6: missing expected steps receive partial/no credit, while duplicate or unknown step IDs, unknown fields, and wrong field types are rejected. Missing result/list fields receive no credit.
+The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. The valid step domain is exactly 1–6: missing expected steps receive partial/no credit, while duplicate or unknown step IDs, unknown fields, and wrong field types are rejected. Missing result/list fields receive no credit. The existing 80/100 pass threshold is unchanged. Evaluation details explicitly indicate whether each submitted field was present, so an omitted field remains distinguishable from an explicit JSON `null`.
 
 ### B01 — Root Cause Diagnosis
 
@@ -49,7 +49,7 @@ The reference diagnosis and evidence catalog define the expected answer. Evidenc
 - Duplicate evidence IDs, malformed list values, wrong field types, and unknown top-level fields are rejected.
 - Missing fields receive no credit rather than causing a crash.
 
-This prevents a submission from obtaining full evidence credit by including the required evidence alongside arbitrary unsupported IDs.
+This prevents a submission from obtaining full evidence credit by including the required evidence alongside arbitrary unsupported IDs. The existing 80/100 pass threshold is unchanged. Reports distinguish unknown evidence IDs from all non-gold evidence predictions, including known catalogue entries that do not support the target diagnosis.
 
 ### B03 — Test the Hidden Bug
 
