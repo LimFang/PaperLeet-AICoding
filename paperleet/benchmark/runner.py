@@ -78,7 +78,17 @@ class BenchmarkRunner:
         wall_time = time.monotonic() - started
         if stop_reason is None:
             stop_reason = strategy_result.metadata.get("stop_reason")
-        task_metrics["efficiency"] = efficiency_metrics(strategy_result, wall_time)
+        if status == "succeeded" and stop_reason:
+            lowered = stop_reason.casefold()
+            if "wall-clock" in lowered or "timeout" in lowered:
+                status = "timed_out"
+            elif "budget exceeded" in lowered or "budget" in lowered:
+                status = "budget_exceeded"
+            else:
+                status = "failed"
+        observed_efficiency = efficiency_metrics(strategy_result, wall_time)
+        rubric_efficiency = task_metrics.get("efficiency", {})
+        task_metrics["efficiency"] = {**observed_efficiency, **rubric_efficiency}
         finished_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         return build_run_report(
             task=task,
