@@ -153,7 +153,7 @@ def validate_run_report(report: Any) -> None:
         raise ValueError(f"manifest is missing fields: {sorted(missing_manifest)}")
     if not isinstance(manifest["run_id"], str) or not manifest["run_id"]:
         raise ValueError("manifest.run_id must be a non-empty string")
-    if manifest["strategy"] not in ("S0", "S1", "S2", "S3"):
+    if manifest["strategy"] not in ("S0", "S1", "S2", "S3", "DETERMINISTIC"):
         raise ValueError("manifest.strategy is invalid")
     if manifest["prompt_hash"] is not None and not str(manifest["prompt_hash"]).startswith("sha256:"):
         raise ValueError("manifest.prompt_hash must be a SHA-256 digest or null")
