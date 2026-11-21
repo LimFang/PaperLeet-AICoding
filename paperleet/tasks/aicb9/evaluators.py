@@ -99,6 +99,7 @@ def evaluate_a01(answer):
                     "step": expected["step"],
                     "expected": expected[field],
                     "actual": by_step.get(expected["step"], {}).get(field),
+                    "present": field in by_step.get(expected["step"], {}),
                 }
                 for expected in reference
                 if field not in by_step.get(expected["step"], {})
@@ -208,25 +209,30 @@ def evaluate_b01(answer):
                 "passed": actual["primary_file"] == expected["primary_file"],
                 "expected": expected["primary_file"],
                 "actual": actual["primary_file"],
+                "present": "primary_file" in payload,
             },
             "root_cause_id": {
                 "passed": actual["root_cause_id"] == expected["root_cause_id"],
                 "expected": expected["root_cause_id"],
                 "actual": actual["root_cause_id"],
+                "present": "root_cause_id" in payload,
             },
             "affected_function": {
                 "passed": actual["affected_function"] == expected["affected_function"],
                 "expected": expected["affected_function"],
                 "actual": actual["affected_function"],
+                "present": "affected_function" in payload,
             },
             "causal_order": {
                 "passed": actual["causal_order"] == expected["causal_order"],
                 "expected": expected["causal_order"],
                 "actual": actual["causal_order"],
+                "present": "causal_order" in payload,
             },
             "evidence": {
                 "required": sorted(gold_evidence),
                 "provided": sorted(provided_evidence),
+                "present": "evidence_ids" in payload,
                 "known": sorted(provided_evidence & valid_evidence_ids),
                 "unsupported": unsupported_evidence,
                 "false_positive": sorted(provided_evidence - gold_evidence),
@@ -238,6 +244,7 @@ def evaluate_b01(answer):
                 "required_exclusion": expected["excluded_hypotheses"][0],
                 "passed": expected["excluded_hypotheses"][0] in actual["excluded_hypotheses"],
                 "actual": actual["excluded_hypotheses"],
+                "present": "excluded_hypotheses" in payload,
             },
         },
         "scoring_mode": "deterministic_rubric",
