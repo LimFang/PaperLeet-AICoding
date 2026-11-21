@@ -110,7 +110,7 @@ def _build_single_prompt_request(task: dict, strategy_id: str, args) -> Strategy
         )
     return StrategyRequest(
         messages=messages,
-        max_output_tokens=args.max_output_tokens,
+        max_output_tokens=args.max_output_tokens or 2048,
         method_steps=method_steps,
         evidence=evidence,
     )
@@ -147,7 +147,7 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     run.add_argument("--method-steps-file", type=Path)
     run.add_argument("--evidence-file", type=Path)
     run.add_argument("--workspace", type=Path, help="existing C01 workspace for S3; otherwise a temporary fixture copy is used")
-    run.add_argument("--max-output-tokens", type=int, default=2048)
+    run.add_argument("--max-output-tokens", type=int)
     run.add_argument("--max-tool-calls", type=int)
     run.add_argument("--max-input-tokens", type=int)
     run.add_argument("--max-wall-seconds", type=float)
@@ -173,6 +173,12 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
         if strategy_id == "S3":
             if args.workspace:
                 workspace = args.workspace.resolve()
+                check = subprocess.run(
+                    ["git", "rev-parse", "--is-inside-work-tree"],
+                    cwd=workspace, capture_output=True, text=True,
+                )
+                if check.returncode != 0:
+                    raise ValueError("--workspace must point to an existing Git repository")
             else:
                 temporary = tempfile.TemporaryDirectory(prefix=f"paperleet-{task['id'].lower()}-")
                 workspace = Path(temporary.name) / "repository"
