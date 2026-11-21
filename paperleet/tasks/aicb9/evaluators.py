@@ -92,10 +92,23 @@ def evaluate_a01(answer):
             if field in actual and actual[field] == expected[field]:
                 correct += 1
         breakdown[field] = round(weight * correct / total, 2)
-        details[field] = {"correct": correct, "total": total}
+        details[field] = {
+            "matched_steps": correct,
+            "total_steps": total,
+            "mismatches": [
+                {
+                    "step": expected["step"],
+                    "expected": expected[field],
+                    "actual": by_step.get(expected["step"], {}).get(field),
+                }
+                for expected in reference
+                if field not in by_step.get(expected["step"], {})
+                or by_step[expected["step"]][field] != expected[field]
+            ],
+        }
     score = round(sum(breakdown.values()), 2)
     return {
-        "task": "A01",
+        "task_id": "A01",
         "score": score,
         "max_score": 100,
         "passed": score >= 90,
@@ -105,6 +118,7 @@ def evaluate_a01(answer):
             "submitted_steps": len(by_step),
             "missing_steps": sorted(set(range(1, 7)) - set(by_step)),
         },
+        "scoring_mode": "deterministic_rubric",
     }
 
 
@@ -185,22 +199,47 @@ def evaluate_b01(answer):
     }
     score = round(sum(breakdown.values()), 2)
     return {
-        "task": "B01",
+        "task_id": "B01",
         "score": score,
         "max_score": 100,
         "passed": score >= 85,
         "breakdown": breakdown,
         "details": {
-            "expected": expected,
-            "actual": actual,
+            "primary_file": {
+                "passed": actual["primary_file"] == expected["primary_file"],
+                "expected": expected["primary_file"],
+                "actual": actual["primary_file"],
+            },
+            "root_cause_id": {
+                "passed": actual["root_cause_id"] == expected["root_cause_id"],
+                "expected": expected["root_cause_id"],
+                "actual": actual["root_cause_id"],
+            },
+            "affected_function": {
+                "passed": actual["affected_function"] == expected["affected_function"],
+                "expected": expected["affected_function"],
+                "actual": actual["affected_function"],
+            },
+            "causal_order": {
+                "passed": actual["causal_order"] == expected["causal_order"],
+                "expected": expected["causal_order"],
+                "actual": actual["causal_order"],
+            },
             "evidence": {
                 "required": sorted(gold_evidence),
                 "provided": sorted(provided_evidence),
                 "known": sorted(provided_evidence & valid_evidence_ids),
                 "unsupported": unsupported_evidence,
+                "false_positive": sorted(provided_evidence - gold_evidence),
                 "precision": round(evidence_precision, 6),
                 "recall": round(evidence_recall, 6),
                 "f1": round(evidence_f1, 6),
             },
+            "alternative_hypothesis": {
+                "required_exclusion": expected["excluded_hypotheses"][0],
+                "passed": expected["excluded_hypotheses"][0] in actual["excluded_hypotheses"],
+                "actual": actual["excluded_hypotheses"],
+            },
         },
+        "scoring_mode": "deterministic_rubric",
     }
