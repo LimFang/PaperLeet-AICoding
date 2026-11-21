@@ -1,5 +1,4 @@
 import json
-import subprocess
 
 from paperleet.benchmark import cli
 from paperleet.providers import ModelConfig
