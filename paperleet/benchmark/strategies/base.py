@@ -80,6 +80,14 @@ class BenchmarkStrategy(Protocol):
         ...
 
 
+def _validate_single_prompt_messages(messages: Sequence[Mapping[str, Any]]) -> None:
+    if not messages:
+        raise ValueError("single-prompt strategies require at least one message")
+    for message in messages:
+        if message.get("role") in ("tool", "function") or "tool_calls" in message or "tool_call_id" in message:
+            raise ValueError("single-prompt strategies cannot include tool interaction history")
+
+
 def _append_user_context(messages: Sequence[Mapping[str, Any]], heading: str, content: str) -> list[dict]:
     """Copy messages and append exactly one named context field to the last user message."""
     copied = [dict(message) for message in messages]
