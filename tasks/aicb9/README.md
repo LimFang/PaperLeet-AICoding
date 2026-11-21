@@ -30,7 +30,7 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 | `fixture.version` / `fixture.digest` | 题目仓库版本和文件树 Git SHA-1 摘要 |
 | `evaluation.public` / `evaluation.private` | 公开与可信私有评分组件的实现状态 |
 
-当前四道题的 `strategies.supported` 都为空，表示统一 S0–S3 执行适配器仍未实现；C01 已有的本地 Agent 原型继续通过 `agent C01` 命令运行，不应误写成标准化 S3 适配器已完成。B03 的六个变异体属于公开开发样例，C01 隐藏评分状态为 `not_implemented`。
+当前支持组合为：A01/B01 支持 S0–S2，C01 支持 S3，B03 暂未接入统一 Runner。B03 的六个变异体属于公开开发样例，C01 隐藏评分状态为 `not_implemented`。
 
 注册表加载时会检查任务 ID/Slug/编号、版本、输入输出文件、策略名称、分数权重和预算类型。为了兼容旧扩展，缺少 `schema_version` 的旧版注册表仍可读取，但新任务应遵循 v2。所有本地 CLI 的任务列表由注册表的 `cli.command` 字段生成，不再单独硬编码题号。
 
