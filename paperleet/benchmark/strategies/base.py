@@ -1,5 +1,7 @@
 """Shared request/result contracts for benchmark strategies."""
 from dataclasses import dataclass, field
+import hashlib
+import json
 from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
 
 
@@ -78,6 +80,12 @@ class BenchmarkStrategy(Protocol):
 
     def run(self, request: StrategyRequest) -> StrategyResult:
         ...
+
+
+def _prompt_hash(messages: Sequence[Mapping[str, Any]]) -> str:
+    """Hash the canonical ordered messages sent to a single-prompt provider."""
+    payload = json.dumps(list(messages), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _validate_single_prompt_messages(messages: Sequence[Mapping[str, Any]]) -> None:
