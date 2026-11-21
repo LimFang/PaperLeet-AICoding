@@ -107,12 +107,42 @@ class BenchmarkRunner:
     def evaluate(self, task_id: str | int, answer) -> dict:
         """Score an existing structured answer locally without constructing a model client."""
         task = self.get_task(task_id)
-        if task["id"] not in ("A01", "B01"):
+        if task["id"] not in ("A01", "B01", "C01"):
             raise ValueError(f"Deterministic answer evaluation is not implemented for task {task['id']}")
         if isinstance(answer, (str, Path)):
             answer = json.loads(Path(answer).read_text(encoding="utf-8"))
+        if task["id"] == "C01":
+            if not isinstance(answer, Mapping):
+                raise ValueError("C01 Agent report must be a JSON object")
+            budget = answer.get("budget", {})
+            budget = budget if isinstance(budget, Mapping) else {}
+            input_tokens = budget.get("input_tokens")
+            output_tokens = budget.get("output_tokens")
+            usage = None
+            if input_tokens is not None or output_tokens is not None or budget.get("cost_usd") is not None:
+                usage = {
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "source": "provider_reported" if input_tokens is not None or output_tokens is not None else "unavailable",
+                    "cost_usd": budget.get("cost_usd"),
+                    "price_table_version": budget.get("price_table_version"),
+                }
+            strategy_result = StrategyResult(
+                strategy="DETERMINISTIC",
+                output=answer,
+                usage=usage,
+                api_calls=int(budget.get("api_calls") or 0),
+                tool_calls=int(budget.get("tool_calls") or 0),
+                trace=tuple(answer.get("trace") or ()),
+                metadata={
+                    "estimated_input_tokens": budget.get("estimated_input_tokens"),
+                    "estimated_output_tokens": budget.get("estimated_output_tokens"),
+                    "stop_reason": answer.get("stopped_reason"),
+                },
+            )
+        else:
+            strategy_result = StrategyResult(strategy="DETERMINISTIC", output=answer)
         request = StrategyRequest(max_output_tokens=1)
-        strategy_result = StrategyResult(strategy="DETERMINISTIC", output=answer)
         started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         started = time.monotonic()
         task_metrics = evaluate_task(task, strategy_result)
