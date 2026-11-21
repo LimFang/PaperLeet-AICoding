@@ -1,5 +1,5 @@
 """S0/S1 single-prompt strategies."""
-from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage, _validate_single_prompt_messages
+from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage, _validate_single_prompt_messages, _prompt_hash
 
 
 class BlackBoxSinglePrompt:
@@ -22,6 +22,7 @@ class BlackBoxSinglePrompt:
             output=response,
             usage=_provider_usage(response),
             api_calls=1,
+            metadata={"prompt_hash": _prompt_hash(request.messages)},
         )
 
 
@@ -48,4 +49,5 @@ class WhiteBoxSinglePrompt:
             output=response,
             usage=_provider_usage(response),
             api_calls=1,
+            metadata={"prompt_hash": _prompt_hash(messages)},
         )
