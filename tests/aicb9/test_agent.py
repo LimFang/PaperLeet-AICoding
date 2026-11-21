@@ -188,3 +188,16 @@ def test_openai_compatible_client_uses_injected_transport_without_network():
     assert captured["authorization"] == "Bearer unit-test-key"
     assert captured["payload"]["model"] == "unit-test-model"
     assert captured["payload"]["max_tokens"] == 32
+
+def test_agent_runner_keeps_missing_provider_usage_unknown(tmp_path):
+    class NoUsageClient:
+        def complete(self, messages, tools, max_tokens):
+            return {"choices": [{"message": {"role": "assistant", "content": "Done."}}]}
+
+    result = AgentRunner(NoUsageClient(), tmp_path).run("Inspect the repository.")
+    assert result["budget"]["api_calls"] == 1
+    assert result["budget"]["input_tokens"] is None
+    assert result["budget"]["output_tokens"] is None
+    assert result["budget"]["estimated_input_tokens"] is not None
+    assert result["budget"]["estimated_input_tokens"] > 0
+    assert result["budget"]["estimated_cost_usd"] is None
