@@ -50,17 +50,32 @@ cd PaperLeet-AICoding
 python3 -m venv .venv
 source .venv/bin/activate
 
+# Full Web + algorithm development (includes Torch/NumPy):
 # Optional on Linux: install CPU-only PyTorch before the project dependencies.
 # python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-python -m pip install -e .
+python -m pip install -e ".[dev]"
 npm --prefix web ci
 make dev
 ```
 
 Open **http://127.0.0.1:5173** once `make dev` starts. The command exports the catalog and starts both the frontend and the local Python judge at `127.0.0.1:8765`. Press Ctrl-C to stop both services. For later sessions, activate the environment and run `make dev` again.
 
-For CLI-only practice, install the Python dependencies and skip npm and `make dev`.
+For CLI-only practice, skip npm and `make dev`. Install only the dependencies for your task:
+
+```bash
+# Lightweight AICB-9 judging: no Torch, NumPy, or Node.js required.
+python -m pip install -e ".[aicb9]"
+make check-aicb9
+
+# Inherited PaperLeet algorithm exercises (Torch/NumPy).
+python -m pip install -e ".[algorithms]"
+
+# Full repository testing/development.
+python -m pip install -e ".[dev]"
+```
+
+All profiles include the minimal base dependency (PyYAML). The `[aicb9]` profile installs pytest and pytest-timeout because B03/C01 execute local public tests; installing it alone does not make the task runner a secure sandbox.
 
 ## First exercise
 

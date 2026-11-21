@@ -8,7 +8,18 @@ version = "0.1.0"
 description = "PaperLeet Offline: research-paper coding practice on your CPU."
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
-dependencies = ["torch>=2.2", "numpy>=1.26", "pytest>=8", "pytest-timeout>=2.3", "PyYAML>=6"]
+dependencies = ["PyYAML>=6"]
+
+[project.optional-dependencies]
+# Deterministic AICB-9 evaluation, mutation tests, and local C01 public pytest.
+# No Torch or NumPy is required for this profile.
+aicb9 = ["pytest>=8", "pytest-timeout>=2.3"]
+
+# Inherited PaperLeet algorithm exercises and their test runner.
+algorithms = ["torch>=2.2", "numpy>=1.26", "pytest>=8", "pytest-timeout>=2.3"]
+
+# Full repository development/CI environment (AICB-9 + algorithms).
+dev = ["torch>=2.2", "numpy>=1.26", "pytest>=8", "pytest-timeout>=2.3"]
 
 [project.scripts]
 paperleet = "paperleet.cli:main"
