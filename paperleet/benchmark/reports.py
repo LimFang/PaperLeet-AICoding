@@ -181,8 +181,11 @@ def validate_run_report(report: Any) -> None:
         value = usage.get(key)
         if type(value) is not int or value < 0:
             raise ValueError(f"manifest.usage.{key} must be a non-negative integer")
+    artifacts = report["artifacts"]
+    if not isinstance(artifacts, dict):
+        raise ValueError("artifacts must be an object")
     for key in ("output_digest", "patch_digest", "trace_digest", "test_report_digest"):
-        value = report["artifacts"].get(key)
+        value = artifacts.get(key)
         if value is not None and not str(value).startswith("sha256:"):
             raise ValueError(f"artifacts.{key} must be a SHA-256 digest or null")
     metrics = report["metrics"]
@@ -193,6 +196,7 @@ def validate_run_report(report: Any) -> None:
         metric = metrics[dimension]
         if not isinstance(metric, dict) or metric.get("status") not in valid_metric_statuses:
             raise ValueError(f"metrics.{dimension}.status is invalid")
-    artifacts = report["artifacts"]
-    if not isinstance(artifacts, dict) or set(("output_digest", "patch_digest", "trace_digest", "test_report_digest")) - set(artifacts):
+    if set(("output_digest", "patch_digest", "trace_digest", "test_report_digest")) - set(artifacts):
         raise ValueError("artifacts must include output/patch/trace/test-report digest fields")
+    if report["stop_reason"] is not None and not isinstance(report["stop_reason"], str):
+        raise ValueError("stop_reason must be a string or null")
