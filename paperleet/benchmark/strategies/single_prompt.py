@@ -34,6 +34,7 @@ class WhiteBoxSinglePrompt:
         self.client = client
 
     def run(self, request: StrategyRequest) -> StrategyResult:
+        _validate_single_prompt_messages(request.messages)
         if not isinstance(request.method_steps, str) or not request.method_steps.strip():
             raise ValueError("S1 requires non-empty method_steps")
         if request.evidence is not None:
