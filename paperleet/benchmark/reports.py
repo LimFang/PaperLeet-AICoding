@@ -31,16 +31,21 @@ def _artifact_digests(strategy_result) -> dict:
     output = strategy_result.output
     trace = _agent_trace(strategy_result)
     patch = output.get("final_diff") if isinstance(output, Mapping) else None
-    test_report = output.get("public_test_result") if isinstance(output, Mapping) else None
+    trace_patch = None
+    test_report = None
     for item in trace:
         tool = item.get("tool")
         result = item.get("result")
         if not isinstance(result, Mapping):
             continue
-        if tool == "git_diff" and result.get("returncode") == 0 and patch is None:
-            patch = result.get("output", "")
-        elif tool == "run_public_tests" and test_report is None:
+        if tool == "git_diff" and result.get("returncode") == 0:
+            trace_patch = result.get("output", "")
+        elif tool == "run_public_tests":
             test_report = result
+    if patch is None:
+        patch = trace_patch
+    if test_report is None and isinstance(output, Mapping):
+        test_report = output.get("public_test_result")
     return {
         "output_digest": sha256_digest(output),
         "patch_digest": sha256_digest(patch) if patch else None,
