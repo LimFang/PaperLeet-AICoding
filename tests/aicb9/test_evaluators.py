@@ -1,4 +1,5 @@
 import json
+import pytest
 from pathlib import Path
 
 from paperleet.tasks.aicb9.evaluators import evaluate_a01, evaluate_b01
@@ -87,7 +88,6 @@ def test_b01_fixture_exhibits_the_documented_rounding_bug():
     ([], "JSON object"),
 ])
 def test_a01_rejects_malformed_or_padded_answers(answer, match):
-    import pytest
     with pytest.raises(ValueError, match=match):
         evaluate_a01(answer)
 
