@@ -102,7 +102,12 @@ def build_run_report(
         "usage": {
             "input_tokens": usage.get("input_tokens"),
             "output_tokens": usage.get("output_tokens"),
-            "estimated_input_tokens": agent_budget.get("estimated_input_tokens"),
+            "estimated_input_tokens": (
+                agent_budget.get("estimated_input_tokens")
+                if agent_budget.get("estimated_input_tokens") is not None
+                else strategy_result.metadata.get("estimated_input_tokens")
+            ),
+            "estimated_output_tokens": strategy_result.metadata.get("estimated_output_tokens"),
             "usage_source": usage.get("source", "unavailable"),
             "api_calls": strategy_result.api_calls,
             "tool_calls": strategy_result.tool_calls,
@@ -162,7 +167,7 @@ def validate_run_report(report: Any) -> None:
     usage = manifest["usage"]
     if not isinstance(usage, dict):
         raise ValueError("manifest.usage must be an object")
-    for key in ("input_tokens", "output_tokens", "estimated_input_tokens", "cost_usd"):
+    for key in ("input_tokens", "output_tokens", "estimated_input_tokens", "estimated_output_tokens", "cost_usd"):
         value = usage.get(key)
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0):
             raise ValueError(f"manifest.usage.{key} must be non-negative or null")
