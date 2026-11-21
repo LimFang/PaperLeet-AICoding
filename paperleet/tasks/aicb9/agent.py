@@ -231,10 +231,13 @@ class TaskWorkspace:
                 "timed_out": True,
             }
 
-    def _git(self, *args):
+    def _git(self, *args, max_output_chars=10000):
         try:
             proc = subprocess.run(["git", *args], cwd=self.root, text=True, capture_output=True, timeout=5)
-            return {"returncode": proc.returncode, "output": (proc.stdout + proc.stderr)[-10000:]}
+            output = proc.stdout + proc.stderr
+            if max_output_chars is not None:
+                output = output[-max_output_chars:]
+            return {"returncode": proc.returncode, "output": output}
         except (FileNotFoundError, subprocess.TimeoutExpired):
             return {"returncode": 127, "output": "git is unavailable or timed out"}
 
@@ -245,7 +248,7 @@ class TaskWorkspace:
         return self._git("status", "--short", "--", ".")
 
     def final_snapshot(self):
-        diff = self._git("diff", "--no-ext-diff", "--", ".")
+        diff = self._git("diff", "--no-ext-diff", "--", ".", max_output_chars=None)
         names = self._git("diff", "--name-only", "--", ".")
         check = self._git("diff", "--check", "--", ".")
         status = self._git("status", "--short", "--", ".")
