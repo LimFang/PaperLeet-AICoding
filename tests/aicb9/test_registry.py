@@ -60,7 +60,12 @@ def test_v2_registry_has_four_current_tasks_with_explicit_status():
     assert all(task["task_version"] == "1.0.0" for task in tasks)
     assert all(task["rubric_version"] == "1.0.0" for task in tasks)
     assert all(task["schema_version"] == 2 for task in tasks)
-    assert all(task["strategies"]["supported"] == [] for task in tasks)
+    assert {task["id"]: task["strategies"]["supported"] for task in tasks} == {
+        "A01": ["S0", "S1", "S2"],
+        "B01": ["S0", "S1", "S2"],
+        "B03": [],
+        "C01": ["S3"],
+    }
     assert get_task(301)["id"] == "C01"
     assert get_task("repository-bug-fix")["id"] == "C01"
     assert tasks[2]["evaluation"]["private"]["status"] == "not_implemented"
