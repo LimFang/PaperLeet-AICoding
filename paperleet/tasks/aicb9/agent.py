@@ -10,8 +10,8 @@ import os
 import subprocess
 import sys
 import time
-import urllib.error
-import urllib.request
+
+from paperleet.providers.openai_compatible import OpenAICompatibleClient
 
 
 class BudgetExceeded(RuntimeError):
@@ -33,6 +33,9 @@ class Budget:
     api_calls: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
+    estimated_input_tokens: int = 0
+    input_usage_complete: bool = True
+    output_usage_complete: bool = True
 
     def check_time(self):
         if time.monotonic() - self.started_at > self.max_wall_seconds:
@@ -40,7 +43,7 @@ class Budget:
 
     def reserve_request(self, estimated_input_tokens: int, requested_output_tokens: int):
         self.check_time()
-        if self.input_tokens + estimated_input_tokens > self.max_input_tokens:
+        if self.input_tokens + self.estimated_input_tokens + estimated_input_tokens > self.max_input_tokens:
             raise BudgetExceeded("estimated input-token budget exceeded")
         remaining_output = self.max_output_tokens - self.output_tokens
         if remaining_output <= 0:
@@ -54,51 +57,26 @@ class Budget:
             raise BudgetExceeded("tool-call budget exceeded")
         self.tool_calls += 1
 
-    def add_usage(self, usage):
-        self.input_tokens += int(usage.get("prompt_tokens", 0) or 0)
-        self.output_tokens += int(usage.get("completion_tokens", 0) or 0)
-        if self.input_tokens > self.max_input_tokens or self.output_tokens > self.max_output_tokens:
-            raise BudgetExceeded("provider-reported token budget exceeded")
+    def add_usage(self, usage, estimated_input_tokens=0):
+        usage = usage if isinstance(usage, dict) else {}
+        prompt_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
+        completion_tokens = usage.get("completion_tokens", usage.get("output_tokens"))
+        if prompt_tokens is None:
+            self.input_usage_complete = False
+            self.estimated_input_tokens += estimated_input_tokens
+        else:
+            self.input_tokens += int(prompt_tokens)
+        if completion_tokens is None:
+            self.output_usage_complete = False
+        else:
+            self.output_tokens += int(completion_tokens)
+        if self.input_tokens + self.estimated_input_tokens > self.max_input_tokens or self.output_tokens > self.max_output_tokens:
+            raise BudgetExceeded("provider-reported or estimated token budget exceeded")
 
 
 def estimate_tokens(messages):
     text = json.dumps(messages, ensure_ascii=False, separators=(",", ":"))
     return max(1, (len(text) + 2) // 3)
-
-
-class OpenAICompatibleClient:
-    def __init__(self, api_key=None, model=None, base_url=None, timeout=60, opener=None):
-        self.api_key = api_key or os.environ.get("AICB9_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
-        self.model = model or os.environ.get("AICB9_MODEL")
-        self.base_url = (base_url or os.environ.get("AICB9_BASE_URL") or "https://api.deepseek.com").rstrip("/")
-        self.timeout = timeout
-        self.opener = opener or urllib.request.urlopen
-        if not self.api_key:
-            raise ValueError("Set DEEPSEEK_API_KEY before running C01")
-        if not self.model:
-            raise ValueError("Set AICB9_MODEL to a model ID enabled for your API account")
-
-    def complete(self, messages, tools, max_tokens):
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "tools": tools,
-            "tool_choice": "auto",
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
-        request = urllib.request.Request(
-            self.base_url + "/chat/completions",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with self.opener(request, timeout=self.timeout) as response:
-                return json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")[:2000]
-            raise RuntimeError(f"Model API returned HTTP {exc.code}: {body}") from exc
 
 
 TOOL_DEFINITIONS = [
@@ -258,7 +236,7 @@ class AgentRunner:
                 estimated = estimate_tokens(messages)
                 max_tokens = self.budget.reserve_request(estimated, 2048)
                 response = self.client.complete(messages, TOOL_DEFINITIONS, max_tokens)
-                self.budget.add_usage(response.get("usage", {}))
+                self.budget.add_usage(response.get("usage"), estimated_input_tokens=estimated)
                 self.budget.check_time()
             except BudgetExceeded as exc:
                 stopped_reason = str(exc)
@@ -303,7 +281,8 @@ class AgentRunner:
         input_rate = os.environ.get("AICB9_INPUT_PRICE_PER_M")
         output_rate = os.environ.get("AICB9_OUTPUT_PRICE_PER_M")
         estimated_cost = None
-        if input_rate is not None and output_rate is not None:
+        usage_complete = self.budget.api_calls > 0 and self.budget.input_usage_complete and self.budget.output_usage_complete
+        if input_rate is not None and output_rate is not None and usage_complete:
             estimated_cost = round(
                 self.budget.input_tokens * float(input_rate) / 1_000_000
                 + self.budget.output_tokens * float(output_rate) / 1_000_000,
@@ -317,8 +296,9 @@ class AgentRunner:
             "budget": {
                 "tool_calls": self.budget.tool_calls,
                 "api_calls": self.budget.api_calls,
-                "input_tokens": self.budget.input_tokens,
-                "output_tokens": self.budget.output_tokens,
+                "input_tokens": self.budget.input_tokens if self.budget.api_calls and self.budget.input_usage_complete else None,
+                "output_tokens": self.budget.output_tokens if self.budget.api_calls and self.budget.output_usage_complete else None,
+                "estimated_input_tokens": self.budget.estimated_input_tokens or None,
                 "estimated_cost_usd": estimated_cost,
                 "wall_time_s": round(time.monotonic() - self.budget.started_at, 3),
                 "limits": {"max_tool_calls": self.budget.max_tool_calls,
