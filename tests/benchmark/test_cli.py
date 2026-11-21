@@ -71,3 +71,17 @@ def test_cli_runs_c01_s3_with_a_mock_agent_runner(tmp_path, monkeypatch, capsys)
     assert report["metrics"]["correctness"]["status"] == "unavailable"
     assert report["manifest"]["strategy"] == "S3"
     assert report["manifest"]["model_id"] == "fake-agent"
+
+def test_cli_deterministic_evaluation_requires_no_model_api(tmp_path, monkeypatch, capsys):
+    answer = task_root() / "A01" / "reference_trace.json"
+    def unexpected_model_config(*args, **kwargs):
+        raise AssertionError("deterministic evaluation must not configure a model")
+    monkeypatch.setattr(cli.ModelConfig, "from_env", staticmethod(unexpected_model_config))
+    result = cli.main(["evaluate", "--task", "A01", "--answer", str(answer)])
+    report = json.loads(capsys.readouterr().out)
+    assert result == 0
+    assert report["status"] == "succeeded"
+    assert report["manifest"]["strategy"] == "DETERMINISTIC"
+    assert report["manifest"]["provider"] == "local"
+    assert report["metrics"]["correctness"]["score"] == 100
+    assert report["metrics"]["efficiency"]["api_calls"] == 0
