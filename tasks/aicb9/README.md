@@ -34,6 +34,21 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 
 注册表加载时会检查任务 ID/Slug/编号、版本、输入输出文件、策略名称、分数权重和预算类型。为了兼容旧扩展，缺少 `schema_version` 的旧版注册表仍可读取，但新任务应遵循 v2。所有本地 CLI 的任务列表由注册表的 `cli.command` 字段生成，不再单独硬编码题号。
 
+## AICB-9 轻量安装
+
+只使用 A01/B01 确定性评分、B03 本地 Mutation Testing 或 C01 本地 Agent 原型时，无需安装 Torch、NumPy 或 Node.js：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[aicb9]"
+make check-aicb9
+```
+
+`[aicb9]` 仅安装基础 PyYAML、pytest 与 pytest-timeout。若需要继承的 PaperLeet 算法题，请选择 `pip install -e ".[algorithms]"`；若需要完整仓库开发与前端，请选择 `pip install -e ".[dev]"` 并在 `web/` 中运行 npm 安装。
+
+**安全限制：** B03/C01 的 Python 执行仍只有本地进程与环境变量层面的防误用措施，不是多租户沙箱；参见 [Security Model](../../docs/security-model.md)。
+
 ## 统一 Benchmark Runner（实验接口）
 
 安装项目后，可以使用统一入口执行已声明支持的任务/策略组合。已有答案的确定性评分不需要模型 API：
