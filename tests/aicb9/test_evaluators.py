@@ -150,3 +150,9 @@ def test_b01_missing_fields_receive_partial_credit():
     report = evaluate_b01({"root_cause_id": "round_unit_price_before_quantity"})
     assert report["score"] < 100
     assert report["details"]["evidence"]["recall"] == 0.0
+
+def test_a01_preserves_the_existing_80_point_pass_threshold():
+    reference = json.loads((task_root() / "A01" / "reference_trace.json").read_text())
+    report = evaluate_a01({"steps": reference["steps"][:5]})
+    assert report["score"] == 83.33
+    assert report["passed"] is True
