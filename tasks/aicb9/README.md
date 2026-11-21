@@ -15,6 +15,25 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 | B03 | [Test the Hidden Bug](B03/statement.md) | 学生编写测试 + Mutation Testing | 不需要 |
 | C01 | [Repository Bug Fix](C01/statement.md) | 仓库级 Agent 修复 | 真实运行需配置 DeepSeek 或兼容 API |
 
+## 版本化任务元数据
+
+`registry.yaml` 使用 `schema_version: 2`，四道题的 `task.yaml` 新增以下字段，同时保留原有的 `scoring`、`runtime`、`execution`、`api_required` 和 `repository`，避免改变现有评分和执行语义。
+
+| 字段 | 含义 |
+|---|---|
+| `task_version` | 题目及输入契约的语义版本 |
+| `rubric_version` | 评分细则版本；修改评分规则时必须更新 |
+| `cli.command` / `cli.handler` | 现有 CLI 运行模式和本地可信判题入口 |
+| `interfaces` | 题面/输出契约文件路径与答案格式（相对于 `tasks/aicb9/`） |
+| `strategies.supported` | 已有统一策略适配器、真实可运行的 S0–S3 策略 |
+| `strategies.planned` | 规划中的策略；不能当作已实现 |
+| `fixture.version` / `fixture.digest` | 题目仓库版本和文件树 Git SHA-1 摘要 |
+| `evaluation.public` / `evaluation.private` | 公开与可信私有评分组件的实现状态 |
+
+当前四道题的 `strategies.supported` 都为空，表示统一 S0–S3 执行适配器仍未实现；C01 已有的本地 Agent 原型继续通过 `agent C01` 命令运行，不应误写成标准化 S3 适配器已完成。B03 的六个变异体属于公开开发样例，C01 隐藏评分状态为 `not_implemented`。
+
+注册表加载时会检查任务 ID/Slug/编号、版本、输入输出文件、策略名称、分数权重和预算类型。为了兼容旧扩展，缺少 `schema_version` 的旧版注册表仍可读取，但新任务应遵循 v2。所有本地 CLI 的任务列表由注册表的 `cli.command` 字段生成，不再单独硬编码题号。
+
 ## 本地运行
 
 安装项目的 Python 依赖后，在仓库根目录运行以下命令。做 A01 或 B01 时，先复制题目目录中的 `starter_answer.json`，填完后将其路径传给 `--answer`。做 B03 时，将自己的 pytest 文件传给 `--tests`。

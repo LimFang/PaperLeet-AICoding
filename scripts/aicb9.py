@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """AICB-9 local pilot CLI. Run from the PaperLeet-AICoding repository root."""
 import argparse
+from importlib import import_module
 import json
 from pathlib import Path
 import sys
@@ -8,42 +9,74 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from paperleet.tasks.aicb9.evaluators import evaluate_a01, evaluate_b01
-from paperleet.tasks.aicb9.mutation import run_mutation_suite
 from paperleet.tasks.aicb9.agent import AgentRunner, Budget, OpenAICompatibleClient
-from paperleet.tasks.aicb9.registry import get_task
+from paperleet.tasks.aicb9.registry import load_registry
+
+
+def _registered_handler(task):
+    """Resolve the trusted in-repository handler declared by this task's spec."""
+    reference = task["cli"]["handler"]
+    module_name, function_name = reference.split(":", 1)
+    module = import_module(module_name)
+    handler = getattr(module, function_name)
+    if not callable(handler):
+        raise ValueError(f"Task handler is not callable: {reference}")
+    return handler
+
+
+def _task_limits(task, args):
+    """Use the task's declared execution limits unless explicitly overridden."""
+    settings = task.get("execution", {})
+    defaults = {
+        "max_tool_calls": 24,
+        "max_input_tokens": 40000,
+        "max_output_tokens": 8000,
+        "max_wall_seconds": 120,
+    }
+    return {name: getattr(args, name) if getattr(args, name) is not None
+            else settings.get(name, default)
+            for name, default in defaults.items()}
 
 
 def main(argv=None):
+    registry = load_registry()
+    tasks_by_mode = {
+        command: [task for task in registry if task.get("cli", {}).get("command") == command]
+        for command in ("evaluate", "mutate", "agent")
+    }
+
     parser = argparse.ArgumentParser(prog="aicb9")
     commands = parser.add_subparsers(dest="command", required=True)
     evaluate = commands.add_parser("evaluate")
-    evaluate.add_argument("task", choices=["A01", "B01"])
+    evaluate.add_argument("task", choices=[task["id"] for task in tasks_by_mode["evaluate"]])
     evaluate.add_argument("--answer", required=True)
     mutate = commands.add_parser("mutate")
-    mutate.add_argument("task", choices=["B03"])
+    mutate.add_argument("task", choices=[task["id"] for task in tasks_by_mode["mutate"]])
     mutate.add_argument("--tests", required=True)
     agent = commands.add_parser("agent")
-    agent.add_argument("task", choices=["C01"])
+    agent.add_argument("task", choices=[task["id"] for task in tasks_by_mode["agent"]])
     agent.add_argument("--workspace", required=True)
-    agent.add_argument("--instruction", type=Path, help="Override the bundled C01 workflow instructions")
-    agent.add_argument("--max-tool-calls", type=int, default=24)
-    agent.add_argument("--max-input-tokens", type=int, default=40000)
-    agent.add_argument("--max-output-tokens", type=int, default=8000)
-    agent.add_argument("--max-wall-seconds", type=float, default=120)
+    agent.add_argument("--instruction", type=Path, help="Override the bundled agent workflow instructions")
+    agent.add_argument("--max-tool-calls", type=int)
+    agent.add_argument("--max-input-tokens", type=int)
+    agent.add_argument("--max-output-tokens", type=int)
+    agent.add_argument("--max-wall-seconds", type=float)
     args = parser.parse_args(argv)
 
+    task = next(task for task in tasks_by_mode[args.command] if task["id"] == args.task)
     if args.command == "evaluate":
-        report = evaluate_a01(args.answer) if args.task == "A01" else evaluate_b01(args.answer)
+        report = _registered_handler(task)(args.answer)
     elif args.command == "mutate":
-        report = run_mutation_suite(args.tests)
+        report = _registered_handler(task)(args.tests)
     else:
-        task_directory = get_task(args.task)["directory"]
+        task_directory = task["directory"]
         statement = (task_directory / "statement.md").read_text(encoding="utf-8")
         workflow = args.instruction or task_directory / "agent_instruction.md"
         instruction = f"{statement}\n\n{workflow.read_text(encoding='utf-8')}"
         client = OpenAICompatibleClient()
-        budget = Budget(args.max_tool_calls, args.max_input_tokens, args.max_output_tokens, args.max_wall_seconds)
+        limits = _task_limits(task, args)
+        budget = Budget(limits["max_tool_calls"], limits["max_input_tokens"],
+                        limits["max_output_tokens"], limits["max_wall_seconds"])
         report = AgentRunner(client, args.workspace, budget=budget).run(instruction)
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
     if args.command in ("evaluate", "mutate") and not report.get("passed"):

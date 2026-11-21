@@ -20,3 +20,27 @@ runtime:
   judge: local_mutation_runner
   timeout_seconds: 8
   network: inherited_by_local_test_process
+
+# Schema v2 metadata. Existing scoring and runtime/execution fields remain authoritative.
+task_version: 1.0.0
+rubric_version: 1.0.0
+cli:
+  command: mutate
+  handler: paperleet.tasks.aicb9.mutation:run_mutation_suite
+interfaces:
+  input: B03/statement.md
+  output: B03/statement.md
+  format: pytest_file
+strategies:
+  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
+  planned: [S0, S1, S2]
+fixture:
+  version: 1.0.0
+  digest: git-tree-sha1:225efcf52bc5e45a36f852ef834fca53884652b0
+evaluation:
+  public:
+    status: implemented
+    kind: local_mutation_runner
+  private:
+    status: not_implemented
+    kind: trusted_hidden_evaluation

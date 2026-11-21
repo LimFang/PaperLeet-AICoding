@@ -20,3 +20,26 @@ scoring:
 runtime:
   judge: deterministic_json
   network: disabled
+
+# Schema v2 metadata. Existing scoring and runtime/execution fields remain authoritative.
+task_version: 1.0.0
+rubric_version: 1.0.0
+cli:
+  command: evaluate
+  handler: paperleet.tasks.aicb9.evaluators:evaluate_a01
+interfaces:
+  input: A01/statement.md
+  output: A01/starter_answer.json
+  format: json
+strategies:
+  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
+  planned: [S0, S1]
+fixture:
+  version: 1.0.0
+  digest: git-tree-sha1:931c20e4ed980ca72313c2bb937493a1d6cbb959
+evaluation:
+  public:
+    status: implemented
+    kind: deterministic_json
+  private:
+    status: not_applicable

@@ -28,3 +28,26 @@ execution:
 private_evaluation:
   status: planned_not_implemented
   policy: load hidden tests only in a separate trusted evaluator, never in the Agent workspace
+
+# Schema v2 metadata. Existing scoring and runtime/execution fields remain authoritative.
+task_version: 1.0.0
+rubric_version: 1.0.0
+cli:
+  command: agent
+interfaces:
+  input: C01/statement.md
+  output: C01/agent_instruction.md
+  format: repository_patch
+strategies:
+  supported: []  # No unified S0-S3 strategy adapter is implemented yet.
+  planned: [S0, S1, S2, S3]
+fixture:
+  version: 1.0.0
+  digest: git-tree-sha1:27a54c7505f0421b631692b30d29a655269a5cc3
+evaluation:
+  public:
+    status: pilot
+    kind: local_public_tests_only
+  private:
+    status: not_implemented
+    kind: trusted_hidden_evaluation
