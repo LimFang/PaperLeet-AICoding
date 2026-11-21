@@ -156,7 +156,7 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     evaluate.add_argument("--answer", required=True, type=Path)
     evaluate.add_argument("--output", type=Path, help="write the JSON report to this path instead of stdout")
 
-    run = commands.add_parser("run", help="run one registered benchmark task with a model strategy")
+    run = commands.add_parser("run", help="run a model strategy; C01 executes trusted local code without sandbox isolation")
     run.add_argument("--task", required=True, choices=[task["id"] for task in tasks])
     run.add_argument("--model", required=True, help="exact model ID; provider/base URL come from AICB9 environment settings")
     run.add_argument("--strategy", required=True, choices=("s0", "s1", "s2", "s3"))
@@ -164,7 +164,7 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     run.add_argument("--output", type=Path, help="write the JSON report to this path instead of stdout")
     run.add_argument("--method-steps-file", type=Path)
     run.add_argument("--evidence-file", type=Path)
-    run.add_argument("--workspace", type=Path, help="existing C01 workspace for S3; otherwise a temporary fixture copy is used")
+    run.add_argument("--workspace", type=Path, help="trusted local C01 Git workspace only; this is NOT a sandbox")
     run.add_argument("--max-output-tokens", type=_positive_int)
     run.add_argument("--max-tool-calls", type=_positive_int)
     run.add_argument("--max-input-tokens", type=_positive_int)

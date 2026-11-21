@@ -118,7 +118,7 @@ Use `python scripts/aicb9.py --help` to list the commands. [Task instructions an
 
 ### Benchmark protocol and status
 
-The benchmark runner provides S0 Black-box Single-Prompt, S1 White-box Single-Prompt, S2 Tool-Augmented Single-Prompt, and S3 Agentic adapters, subject to each task's declared support in its registry metadata. A01/B01 support S0–S2; C01 supports S3; B03 remains outside the generic runner. Existing deterministic A01/B01 answer evaluation works without a model API. See the [benchmark protocol](docs/benchmark-protocol.md), [evaluation metrics](docs/evaluation-metrics.md), [reproducibility requirements](docs/reproducibility.md), and [scoring rules](docs/scoring-rules.md). The current B03 mutants are public development fixtures, and C01's trusted hidden-test score is not yet available in the local evaluator.
+The benchmark runner provides S0 Black-box Single-Prompt, S1 White-box Single-Prompt, S2 Tool-Augmented Single-Prompt, and S3 Agentic adapters, subject to each task's declared support in its registry metadata. A01/B01 support S0–S2; C01 supports S3; B03 remains outside the generic runner. Existing deterministic A01/B01 answer evaluation works without a model API. See the [benchmark protocol](docs/benchmark-protocol.md), [evaluation metrics](docs/evaluation-metrics.md), [reproducibility requirements](docs/reproducibility.md), and [scoring rules](docs/scoring-rules.md). Local B03/C01 code execution is **trusted-code only**, not a secure hosted sandbox; see the [security model](docs/security-model.md). The current B03 mutants are public development fixtures, and C01's trusted hidden-test score is not yet available in the local evaluator.
 
 ## Validation and evaluation
 
