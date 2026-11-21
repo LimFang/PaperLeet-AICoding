@@ -1,5 +1,5 @@
 """S2 tool-augmented single-prompt strategy."""
-from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage
+from .base import StrategyRequest, StrategyResult, _append_user_context, _provider_usage, _validate_single_prompt_messages
 
 
 class ToolAugmentedSinglePrompt:
@@ -11,6 +11,7 @@ class ToolAugmentedSinglePrompt:
         self.client = client
 
     def run(self, request: StrategyRequest) -> StrategyResult:
+        _validate_single_prompt_messages(request.messages)
         if request.evidence is None:
             raise ValueError("S2 requires a precomputed evidence bundle")
         if request.method_steps is not None:
