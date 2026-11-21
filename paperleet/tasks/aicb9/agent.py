@@ -13,6 +13,7 @@ import sys
 import time
 
 from paperleet.providers.openai_compatible import OpenAICompatibleClient
+from .security import task_subprocess_env
 
 
 class BudgetExceeded(RuntimeError):
@@ -103,7 +104,8 @@ TOOL_DEFINITIONS = [
 
 class TaskWorkspace:
     PROTECTED_PARTS = {".git", ".env", ".aicb9", ".venv", "venv", "node_modules",
-                       "__pycache__", "hidden", "private", "reference", "mutants", "secrets"}
+                       "__pycache__", "hidden", "private", "reference", "mutants", "secrets",
+                       ".ssh", ".aws", ".config", ".netrc", ".npmrc", ".pypirc", ".secrets"}
 
     def __init__(self, root, command_timeout=15):
         self.root = Path(root).resolve()
@@ -116,7 +118,7 @@ class TaskWorkspace:
         rel = PurePosixPath(str(relative))
         if rel.is_absolute() or ".." in rel.parts or not rel.parts:
             raise ToolRejected("path must be a non-empty repository-relative path")
-        if any(part in self.PROTECTED_PARTS for part in rel.parts):
+        if any(part in self.PROTECTED_PARTS or part.startswith(".env") for part in rel.parts):
             raise ToolRejected("path is protected")
         if write and ("tests" in rel.parts or rel.suffix in {".yaml", ".yml"} and rel.name in {"task.yaml", "registry.yaml"}):
             raise ToolRejected("tests and task specifications are read-only")
@@ -133,7 +135,12 @@ class TaskWorkspace:
     def list_files(self, pattern="**/*.py"):
         paths = []
         for path in self.root.glob(pattern):
-            if path.is_file() and not any(part in self.PROTECTED_PARTS for part in path.relative_to(self.root).parts):
+            if path.is_symlink() or not path.is_file():
+                continue
+            if not any(
+                part in self.PROTECTED_PARTS or part.startswith(".env")
+                for part in path.relative_to(self.root).parts
+            ):
                 paths.append(path.relative_to(self.root).as_posix())
         return sorted(paths)[:500]
 
@@ -211,9 +218,7 @@ class TaskWorkspace:
                 "duration_s": 0.0,
                 "timed_out": False,
             }
-        env = os.environ.copy()
-        env.pop("AICB9_API_KEY", None)
-        env.pop("DEEPSEEK_API_KEY", None)
+        env = task_subprocess_env()
         try:
             proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "tests/public"], cwd=self.root,
                                   text=True, capture_output=True, timeout=self.command_timeout, env=env)
@@ -233,7 +238,8 @@ class TaskWorkspace:
 
     def _git(self, *args, max_output_chars=10000):
         try:
-            proc = subprocess.run(["git", *args], cwd=self.root, text=True, capture_output=True, timeout=5)
+            proc = subprocess.run(["git", *args], cwd=self.root, text=True, capture_output=True, timeout=5,
+                                  env=task_subprocess_env())
             output = proc.stdout + proc.stderr
             if max_output_chars is not None:
                 output = output[-max_output_chars:]
