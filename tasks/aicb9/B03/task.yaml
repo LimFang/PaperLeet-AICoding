@@ -44,3 +44,8 @@ evaluation:
   private:
     status: not_implemented
     kind: trusted_hidden_evaluation
+mutation_assets:
+  public_fixture_count: 6
+  visibility: public_development
+  official_hidden_status: not_implemented
+  note: "Committed mutants are public examples, not official hidden benchmark tests"
