@@ -155,6 +155,10 @@ def validate_run_report(report: Any) -> None:
         raise ValueError("manifest.run_id must be a non-empty string")
     if manifest["strategy"] not in ("S0", "S1", "S2", "S3"):
         raise ValueError("manifest.strategy is invalid")
+    if manifest["prompt_hash"] is not None and not str(manifest["prompt_hash"]).startswith("sha256:"):
+        raise ValueError("manifest.prompt_hash must be a SHA-256 digest or null")
+    if manifest["fixture_digest"] is not None and not str(manifest["fixture_digest"]).startswith(("sha256:", "git-tree-sha1:")):
+        raise ValueError("manifest.fixture_digest must be a content digest or null")
     usage = manifest["usage"]
     if not isinstance(usage, dict):
         raise ValueError("manifest.usage must be an object")
@@ -164,6 +168,14 @@ def validate_run_report(report: Any) -> None:
             raise ValueError(f"manifest.usage.{key} must be non-negative or null")
     if usage.get("cost_usd") is not None and not usage.get("price_table_version"):
         raise ValueError("cost requires a versioned price table")
+    for key in ("api_calls", "tool_calls"):
+        value = usage.get(key)
+        if type(value) is not int or value < 0:
+            raise ValueError(f"manifest.usage.{key} must be a non-negative integer")
+    for key in ("output_digest", "patch_digest", "trace_digest", "test_report_digest"):
+        value = report["artifacts"].get(key)
+        if value is not None and not str(value).startswith("sha256:"):
+            raise ValueError(f"artifacts.{key} must be a SHA-256 digest or null")
     metrics = report["metrics"]
     if not isinstance(metrics, dict) or set(METRIC_DIMENSIONS) - set(metrics):
         raise ValueError("metrics must include all five reporting dimensions")
