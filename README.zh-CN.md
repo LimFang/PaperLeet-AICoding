@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding 基于 [PaperLeet 离线版](https://github.com/Hongyang-Du/PaperLeet)，从论文算法实现出发，建设 Coding Agent 工程、软件质量与研发效能、Agent 数据与后训练三条学习路径。
 
-**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道本地命令行练习，覆盖代码轨迹、缺陷诊断、测试设计和 Agent 仓库修复。完整课程规划见主页。
+**当前可用：** 面向岗位的主页、双语算法基础题、Python 编辑器、本机 CPU 判题与交互实验。[AICB-9 试验版](tasks/aicb9/README.md) 提供四道工程练习、版本化任务契约、统一 Benchmark Runner 与 S0–S3 策略适配器；A01/B01 支持无需模型 API 的确定性评分，C01 提供受限的本地 Agent 工作流。可信隐藏测试评分和公网不可信代码执行尚未开放。
 
 [本地启动](#本地启动) · [第一道练习](#第一道练习) · [AICB-9](#aicb-9-试验版) · [能力路径](#能力路径) · [网站部署](#网站部署) · [参与贡献](#参与贡献)
 
