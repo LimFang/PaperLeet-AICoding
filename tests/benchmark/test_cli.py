@@ -19,7 +19,7 @@ class FakeClient:
 def test_cli_runs_a01_with_fake_provider_and_writes_report(tmp_path, monkeypatch, capsys):
     reference = json.loads((task_root() / "A01" / "reference_trace.json").read_text(encoding="utf-8"))
     config = ModelConfig("fake", "fake-model", "https://example.invalid", "test-secret")
-    monkeypatch.setattr(cli.ModelConfig, "from_env", lambda model: config)
+    monkeypatch.setattr(cli.ModelConfig, "from_env", staticmethod(lambda model: config))
     output = tmp_path / "run.json"
     result = cli.main(
         ["run", "--task", "A01", "--model", "fake-model", "--strategy", "s0",
