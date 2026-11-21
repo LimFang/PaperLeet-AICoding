@@ -13,6 +13,7 @@ dependencies = ["torch>=2.2", "numpy>=1.26", "pytest>=8", "pytest-timeout>=2.3",
 [project.scripts]
 paperleet = "paperleet.cli:main"
 leetpaper = "paperleet.cli:main"
+paperleet-benchmark = "paperleet.benchmark.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["paperleet*"]
