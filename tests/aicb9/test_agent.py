@@ -201,3 +201,10 @@ def test_agent_runner_keeps_missing_provider_usage_unknown(tmp_path):
     assert result["budget"]["estimated_input_tokens"] is not None
     assert result["budget"]["estimated_input_tokens"] > 0
     assert result["budget"]["estimated_cost_usd"] is None
+
+def test_budget_accumulates_estimated_input_when_provider_usage_is_missing():
+    budget = Budget(max_input_tokens=100)
+    budget.reserve_request(60, 20)
+    budget.add_usage({}, estimated_input_tokens=60)
+    with pytest.raises(BudgetExceeded, match="estimated input-token budget exceeded"):
+        budget.reserve_request(50, 20)
