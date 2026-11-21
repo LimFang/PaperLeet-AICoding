@@ -36,7 +36,14 @@ AICB-9 的对照协议定义了 S0 Black-box Single-Prompt、S1 White-box Single
 
 ## 统一 Benchmark Runner（实验接口）
 
-安装项目后，可以使用统一入口执行已声明支持的任务/策略组合：
+安装项目后，可以使用统一入口执行已声明支持的任务/策略组合。已有答案的确定性评分不需要模型 API：
+
+```bash
+paperleet-benchmark evaluate --task A01 --answer tasks/aicb9/A01/reference_trace.json
+paperleet-benchmark evaluate --task B01 --answer /path/to/diagnosis.json
+```
+
+模型策略运行需要配置 API：
 
 ```bash
 # 配置模型 API；--model 指定精确模型 ID。
