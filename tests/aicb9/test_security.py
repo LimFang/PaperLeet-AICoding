@@ -120,6 +120,6 @@ def test_b03_mutants_are_explicitly_public_development_assets():
 
 def test_local_code_execution_warning_is_visible_in_cli_help(capsys):
     with pytest.raises(SystemExit) as exc:
-        legacy_cli.main(["mutate", "--help"])
+        legacy_cli.main(["--help"])
     assert exc.value.code == 0
     assert "TRUSTED CODE ONLY" in capsys.readouterr().out
