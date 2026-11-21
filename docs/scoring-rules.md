@@ -25,7 +25,7 @@ The current deterministic rubric has a maximum of 100 points:
 | LRU order | 20 |
 | Evicted keys | 15 |
 
-The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. Duplicate step identifiers and malformed structures should be rejected or handled according to the versioned evaluator policy.
+The evaluator compares each required step and component against the reference trace. Missing values do not match explicit null values. The valid step domain is exactly 1–6: missing expected steps receive partial/no credit, while duplicate or unknown step IDs, unknown fields, and wrong field types are rejected. Missing result/list fields receive no credit.
 
 ### B01 — Root Cause Diagnosis
 
