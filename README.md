@@ -11,7 +11,7 @@
 
 PaperLeet AI Coding builds on [PaperLeet Offline](https://github.com/Hongyang-Du/PaperLeet). It connects paper-based implementation practice with a curriculum for coding agents, software quality and developer productivity, and agent data and post-training.
 
-**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four local CLI exercises for code tracing, defect diagnosis, test design, and agent-based repository repair. The homepage describes the broader curriculum.
+**Available now:** the role-oriented homepage, bilingual algorithm exercises, a Python editor, a local CPU judge, and interactive experiments. The [AICB-9 pilot](tasks/aicb9/README.md) adds four engineering exercises, versioned task contracts, a unified benchmark runner with S0–S3 strategy adapters, and deterministic no-API scoring for A01/B01. C01 provides the bounded local Agent workflow; trusted hidden-test scoring and hosted untrusted-code execution are not yet available.
 
 [Quick start](#quick-start) · [First exercise](#first-exercise) · [AICB-9](#aicb-9-pilot) · [Learning paths](#learning-paths) · [Deployment](#deployment) · [Contributing](#contributing)
 
