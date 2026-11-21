@@ -40,6 +40,25 @@ def _task_limits(task, args):
             for name, default in defaults.items()}
 
 
+def _validate_clean_git_workspace(workspace):
+    root = Path(workspace).resolve()
+    check = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=root, capture_output=True, text=True,
+    )
+    if check.returncode != 0:
+        raise ValueError("--workspace must be an existing Git repository")
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all"],
+        cwd=root, capture_output=True, text=True,
+    )
+    if status.returncode != 0:
+        raise ValueError("could not inspect workspace Git status")
+    if status.stdout.strip():
+        raise ValueError("--workspace must have a clean working tree before the run")
+    return root
+
+
 def main(argv=None, *, client_factory=None, config_factory=None):
     registry = load_registry()
     tasks_by_mode = {
@@ -139,10 +158,14 @@ def main(argv=None, *, client_factory=None, config_factory=None):
         workflow = args.instruction or task_directory / "agent_instruction.md"
         instruction = f"{statement}\n\n{workflow.read_text(encoding='utf-8')}"
         client = (client_factory or OpenAICompatibleClient)()
+        try:
+            workspace = _validate_clean_git_workspace(args.workspace)
+        except (OSError, ValueError) as exc:
+            parser.error(str(exc))
         limits = _task_limits(task, args)
         budget = Budget(limits["max_tool_calls"], limits["max_input_tokens"],
                         limits["max_output_tokens"], limits["max_wall_seconds"])
-        report = AgentRunner(client, args.workspace, budget=budget).run(instruction)
+        report = AgentRunner(client, workspace, budget=budget).run(instruction)
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
     if args.command in ("evaluate", "mutate") and not report.get("passed"):
         return 1
