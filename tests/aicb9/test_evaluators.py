@@ -142,6 +142,7 @@ def test_b01_unsupported_evidence_reduces_precision_and_f1():
     assert evidence["precision"] == 0.5
     assert evidence["recall"] == 1.0
     assert evidence["unsupported"] == ["made.up.evidence"]
+    assert evidence["false_positive"] == ["contract.line_rounding", "made.up.evidence"]
     assert report["breakdown"]["evidence"] < 15
     assert report["score"] < 100
 
