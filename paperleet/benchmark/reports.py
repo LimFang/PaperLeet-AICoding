@@ -37,9 +37,9 @@ def _artifact_digests(strategy_result) -> dict:
         result = item.get("result")
         if not isinstance(result, Mapping):
             continue
-        if tool == "git_diff" and result.get("returncode") == 0:
+        if tool == "git_diff" and result.get("returncode") == 0 and patch is None:
             patch = result.get("output", "")
-        elif tool == "run_public_tests":
+        elif tool == "run_public_tests" and test_report is None:
             test_report = result
     return {
         "output_digest": sha256_digest(output),
