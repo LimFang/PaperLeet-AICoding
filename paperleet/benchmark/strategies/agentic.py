@@ -11,6 +11,8 @@ class AgenticStrategy:
         self.runner = runner
 
     def run(self, request: StrategyRequest) -> StrategyResult:
+        if request.method_steps is not None or request.evidence is not None:
+            raise ValueError("S3 receives its workflow through the agent instruction, not S1/S2 fields")
         instruction = request.instruction
         if instruction is None:
             for message in reversed(request.messages):
