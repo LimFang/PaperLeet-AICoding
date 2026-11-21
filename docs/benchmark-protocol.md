@@ -136,7 +136,21 @@ Not every strategy is meaningful for every task.
 
 The task registry should be the source of truth for task-specific strategy support and budget limits.
 
-## 6. Run artifacts and provenance
+## 6. Local deterministic evaluation (not a model strategy)
+
+The runner also exposes a local `evaluate` command for scoring an existing structured answer with a task's deterministic evaluator. Its report uses the mode identifier `DETERMINISTIC` to distinguish it from S0–S3.
+
+- It does not construct a model client or make an API call.
+- It evaluates a supplied answer artifact using the task's public deterministic rubric.
+- It records local provider identity, zero model/tool calls, evaluator/rubric version, task/fixture digest, and output artifact digest.
+- It is not a fifth model strategy and must not be compared with S0–S3 as if it were a model-generated result.
+
+Example:
+```bash
+paperleet-benchmark evaluate --task A01 --answer tasks/aicb9/A01/reference_trace.json
+```
+
+## 7. Run artifacts and provenance
 
 Every completed or failed run should have a manifest containing the fields defined in [Reproducibility](reproducibility.md). Preserve, where applicable:
 
@@ -153,7 +167,7 @@ Every completed or failed run should have a manifest containing the fields defin
 
 Do not put API keys, hidden tests, private gold labels, or private scoring logic in public artifacts.
 
-## 7. Interpretation
+## 8. Interpretation
 
 Report task-level correctness, evidence, robustness, efficiency, and maintainability separately. Do not collapse unrelated task metrics into a single leaderboard score without a pre-registered aggregation rule.
 
@@ -161,7 +175,7 @@ A positive strategy delta does not automatically imply that the strategy is cost
 
 For sequential maintenance tasks, report outcomes at each checkpoint and cumulatively. A short controlled sequence is evidence about the benchmark fixture under that sequence; it is not direct evidence of years-long production maintenance cost.
 
-## 8. Current implementation status
+## 9. Current implementation status
 
 This document specifies the target protocol. At the time of this protocol revision:
 
