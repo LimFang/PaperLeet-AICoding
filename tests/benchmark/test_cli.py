@@ -36,7 +36,7 @@ def test_cli_runs_a01_with_fake_provider_and_writes_report(tmp_path, monkeypatch
 
 def test_cli_runs_c01_s3_with_a_mock_agent_runner(tmp_path, monkeypatch, capsys):
     config = ModelConfig("fake", "fake-agent", "https://example.invalid", "test-secret")
-    monkeypatch.setattr(cli.ModelConfig, "from_env", lambda model: config)
+    monkeypatch.setattr(cli.ModelConfig, "from_env", staticmethod(lambda model: config))
 
     class FakeAgentRunner:
         def __init__(self, client, workspace, budget):
