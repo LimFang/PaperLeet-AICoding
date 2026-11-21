@@ -4,6 +4,7 @@ import pytest
 
 from paperleet.benchmark.strategies import (
     AgenticStrategy,
+    BenchmarkStrategy,
     BlackBoxSinglePrompt,
     EvidenceBundle,
     StrategyRequest,
@@ -170,3 +171,18 @@ def test_s3_accepts_explicit_instruction_and_reports_partial_usage():
 def test_s3_requires_an_instruction():
     with pytest.raises(ValueError, match="requires a non-empty instruction"):
         AgenticStrategy(object()).run(StrategyRequest())
+
+
+def test_all_adapters_implement_the_common_strategy_protocol(base_messages):
+    client = FakeClient()
+    class FakeRunner:
+        def run(self, instruction):
+            return {"budget": {}, "trace": []}
+
+    adapters = [
+        BlackBoxSinglePrompt(client),
+        WhiteBoxSinglePrompt(client),
+        ToolAugmentedSinglePrompt(client),
+        AgenticStrategy(FakeRunner()),
+    ]
+    assert all(isinstance(adapter, BenchmarkStrategy) for adapter in adapters)
