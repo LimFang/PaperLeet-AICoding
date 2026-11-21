@@ -27,8 +27,8 @@ def efficiency_metrics(strategy_result, wall_time_seconds: float) -> dict:
         "api_calls": strategy_result.api_calls,
         "tool_calls": strategy_result.tool_calls,
         "wall_time_seconds": round(float(wall_time_seconds), 6),
-        "cost_usd": None,
-        "price_table_version": None,
+        "cost_usd": usage.get("cost_usd"),
+        "price_table_version": usage.get("price_table_version"),
     }
 
 
