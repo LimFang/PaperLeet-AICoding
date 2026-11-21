@@ -27,6 +27,20 @@ _EXCLUDED_PARTS = {".git", ".env", ".venv", "venv", "node_modules", "__pycache__
                    "tests", "test", "reference", "hidden", "private", "mutants", "secrets"}
 
 
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("value must be a positive integer")
+    return parsed
+
+
+def _positive_float(value: str) -> float:
+    parsed = float(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("value must be a positive number")
+    return parsed
+
+
 def _repository_context(root: Path, max_characters: int = 24000) -> str:
     chunks = []
     used = 0
@@ -110,7 +124,7 @@ def _build_single_prompt_request(task: dict, strategy_id: str, args) -> Strategy
         )
     return StrategyRequest(
         messages=messages,
-        max_output_tokens=args.max_output_tokens or 2048,
+        max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 2048,
         method_steps=method_steps,
         evidence=evidence,
     )
@@ -125,10 +139,10 @@ def _build_agentic_request(task: dict, args, workspace: Path, client_factory) ->
     )
     limits = task.get("budget_limits", {})
     budget = Budget(
-        max_tool_calls=args.max_tool_calls or limits.get("max_tool_calls", 24),
-        max_input_tokens=args.max_input_tokens or limits.get("max_input_tokens", 40000),
-        max_output_tokens=args.max_output_tokens or limits.get("max_output_tokens", 8000),
-        max_wall_seconds=args.max_wall_seconds or limits.get("max_wall_seconds", 120),
+        max_tool_calls=args.max_tool_calls if args.max_tool_calls is not None else limits.get("max_tool_calls", 24),
+        max_input_tokens=args.max_input_tokens if args.max_input_tokens is not None else limits.get("max_input_tokens", 40000),
+        max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else limits.get("max_output_tokens", 8000),
+        max_wall_seconds=args.max_wall_seconds if args.max_wall_seconds is not None else limits.get("max_wall_seconds", 120),
     )
     strategy = AgenticStrategy(AgentRunner(client_factory, workspace, budget=budget))
     return StrategyRequest(instruction=instruction, max_output_tokens=budget.max_output_tokens), strategy
@@ -152,10 +166,10 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     run.add_argument("--method-steps-file", type=Path)
     run.add_argument("--evidence-file", type=Path)
     run.add_argument("--workspace", type=Path, help="existing C01 workspace for S3; otherwise a temporary fixture copy is used")
-    run.add_argument("--max-output-tokens", type=int)
-    run.add_argument("--max-tool-calls", type=int)
-    run.add_argument("--max-input-tokens", type=int)
-    run.add_argument("--max-wall-seconds", type=float)
+    run.add_argument("--max-output-tokens", type=_positive_int)
+    run.add_argument("--max-tool-calls", type=_positive_int)
+    run.add_argument("--max-input-tokens", type=_positive_int)
+    run.add_argument("--max-wall-seconds", type=_positive_float)
     args = parser.parse_args(argv)
 
     if args.command == "evaluate":
