@@ -171,6 +171,7 @@ def test_report_schema_file_declares_required_dimensions():
     schema_path = Path(__file__).resolve().parents[2] / "paperleet" / "benchmark" / "schemas" / "run-result.schema.json"
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     assert schema["properties"]["schema_version"]["const"] == "1.0"
+    assert "DETERMINISTIC" in schema["properties"]["manifest"]["properties"]["strategy"]["enum"]
     assert set(schema["properties"]["metrics"]["required"]) == {
         "correctness", "reasoning", "robustness", "efficiency", "maintainability"
     }
