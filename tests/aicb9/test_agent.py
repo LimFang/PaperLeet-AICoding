@@ -208,7 +208,10 @@ def test_agent_runner_keeps_missing_provider_usage_unknown(tmp_path):
     assert result["budget"]["output_tokens"] is None
     assert result["budget"]["estimated_input_tokens"] is not None
     assert result["budget"]["estimated_input_tokens"] > 0
-    assert result["budget"]["estimated_cost_usd"] is None
+    assert result["budget"]["estimated_output_tokens"] is not None
+    assert result["budget"]["estimated_output_tokens"] > 0
+    assert result["budget"]["cost_usd"] is None
+    assert result["budget"]["price_table_version"] is None
 
 def test_budget_accumulates_estimated_input_when_provider_usage_is_missing():
     budget = Budget(max_input_tokens=100)
@@ -216,3 +219,97 @@ def test_budget_accumulates_estimated_input_when_provider_usage_is_missing():
     budget.add_usage({}, estimated_input_tokens=60)
     with pytest.raises(BudgetExceeded, match="estimated input-token budget exceeded"):
         budget.reserve_request(50, 20)
+
+def test_agent_runner_captures_final_diff_changed_files_and_public_test_output(tmp_path):
+    subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True)
+    source = tmp_path / "src" / "worker.py"
+    source.parent.mkdir()
+    source.write_text("def run():\\n    return False\\n", encoding="utf-8")
+    tests_dir = tmp_path / "tests" / "public"
+    tests_dir.mkdir(parents=True)
+    (tests_dir / "test_public.py").write_text("def test_public_contract():\\n    assert True\\n", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=PaperLeet", "-c", "user.email=paperleet@example.invalid",
+         "commit", "--quiet", "-m", "Initial C01 test fixture"],
+        cwd=tmp_path, check=True,
+    )
+
+    class PatchAndTestClient:
+        def __init__(self):
+            self.calls = 0
+
+        def complete(self, messages, tools, max_tokens):
+            self.calls += 1
+            if self.calls == 1:
+                calls = [
+                    {"id": "plan", "type": "function", "function": {
+                        "name": "submit_plan",
+                        "arguments": json.dumps({
+                            "root_cause": "Worker returns terminal failure for retryable errors.",
+                            "affected_files": ["src/worker.py"],
+                            "expected_invariants": ["successful tasks complete once"],
+                            "test_plan": ["run public tests"],
+                            "risk_factors": ["duplicate terminal events"],
+                        }),
+                    }},
+                    {"id": "patch", "type": "function", "function": {
+                        "name": "apply_patch",
+                        "arguments": json.dumps({
+                            "path": "src/worker.py",
+                            "old_text": "return False",
+                            "new_text": "return True",
+                        }),
+                    }},
+                    {"id": "tests", "type": "function", "function": {
+                        "name": "run_public_tests", "arguments": "{}",
+                    }},
+                ]
+                message = {"role": "assistant", "content": None, "tool_calls": calls}
+            else:
+                message = {"role": "assistant", "content": "Patch applied and public tests run."}
+            return {
+                "choices": [{"message": message}],
+                "usage": {"prompt_tokens": 40, "completion_tokens": 12},
+            }
+
+    result = AgentRunner(
+        PatchAndTestClient(), tmp_path,
+        budget=Budget(max_tool_calls=5, max_wall_seconds=20),
+    ).run("Fix the worker.")
+    assert result["plan"]["root_cause"].startswith("Worker returns")
+    assert "return True" in result["final_diff"]
+    assert result["changed_files"] == ["src/worker.py"]
+    assert result["diff_check"]["returncode"] == 0
+    assert result["snapshot_available"] is True
+    assert result["public_test_result"]["returncode"] == 0
+    assert result["public_test_runs"][-1]["timed_out"] is False
+
+
+def test_agent_runner_records_tool_budget_exhaustion_and_final_snapshot(tmp_path):
+    class OneToolClient:
+        def complete(self, messages, tools, max_tokens):
+            return {
+                "choices": [{"message": {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [{
+                        "id": "plan",
+                        "type": "function",
+                        "function": {"name": "submit_plan", "arguments": "{}"},
+                    }],
+                }}],
+            }
+
+    result = AgentRunner(OneToolClient(), tmp_path, budget=Budget(max_tool_calls=0)).run("Inspect.")
+    assert result["stopped_reason"] == "tool-call budget exceeded"
+    assert result["budget"]["tool_calls"] == 0
+    assert result["snapshot_available"] is False
+
+
+def test_budget_accounts_for_estimated_output_when_provider_omits_usage():
+    budget = Budget(max_output_tokens=100)
+    budget.reserve_request(10, 50)
+    budget.add_usage({}, estimated_output_tokens=80)
+    with pytest.raises(BudgetExceeded, match="estimated output-token budget exceeded"):
+        budget.reserve_request(10, 50)
