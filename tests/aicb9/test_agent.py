@@ -126,8 +126,10 @@ def test_apply_patch_requires_unique_match_and_plan(tmp_path):
     source.parent.mkdir()
     source.write_text("return False\n")
     workspace = TaskWorkspace(tmp_path)
-    workspace.submit_plan({"root_cause": "x", "affected_files": [], "expected_invariants": [],
-                           "test_plan": [], "risk_factors": []})
+    workspace.submit_plan({"root_cause": "x", "affected_files": ["src/worker.py"],
+                           "expected_invariants": ["preserve terminal states"],
+                           "test_plan": ["run public tests"],
+                           "risk_factors": ["duplicate events"]})
     with pytest.raises(ToolRejected, match="found 0"):
         workspace.apply_patch("src/worker.py", "missing", "replacement")
     assert workspace.apply_patch("src/worker.py", "return False", "return True")["replacements"] == 1
