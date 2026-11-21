@@ -71,6 +71,12 @@ def test_agent_cli_includes_c01_statement(tmp_path, monkeypatch, capsys):
             assert "Do not edit tests" in prompt
             return {"choices": [{"message": {"role": "assistant", "content": "Read the task."}}]}
 
+    subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=PaperLeet", "-c", "user.email=paperleet@example.invalid",
+         "commit", "--allow-empty", "--quiet", "-m", "Initialize C01 test workspace"],
+        cwd=tmp_path, check=True,
+    )
     monkeypatch.setattr(cli, "OpenAICompatibleClient", RecordingClient)
     assert cli.main(["agent", "C01", "--workspace", str(tmp_path)]) == 0
     assert json.loads(capsys.readouterr().out)["final_text"] == "Read the task."
