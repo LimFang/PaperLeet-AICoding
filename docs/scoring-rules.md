@@ -29,7 +29,7 @@ The evaluator compares each required step and component against the reference tr
 
 ### B01 — Root Cause Diagnosis
 
-The current deterministic rubric has a maximum of 100 points:
+**Rubric version: 1.1.0.** The deterministic rubric has a maximum of 100 points:
 
 | Component | Weight |
 |---|---:|
@@ -37,10 +37,19 @@ The current deterministic rubric has a maximum of 100 points:
 | Root cause ID | 30 |
 | Affected function | 10 |
 | Causal order | 20 |
-| Evidence | 15 |
+| Evidence F1 | 15 |
 | Alternative-hypothesis exclusion | 5 |
 
-The reference diagnosis and evidence catalog define the expected answer. Evidence reporting should expose precision and recall separately when the evaluator supports both; matching one required evidence item must not conceal unsupported extra evidence.
+The reference diagnosis and evidence catalog define the expected answer. Evidence precision and recall are computed separately:
+
+- Precision is the fraction of submitted evidence IDs that match the gold evidence set.
+- Recall is the fraction of gold evidence IDs present in the submission.
+- The 15-point evidence component uses their harmonic mean (F1).
+- Unknown evidence IDs remain in the submitted set as unsupported predictions and reduce precision.
+- Duplicate evidence IDs, malformed list values, wrong field types, and unknown top-level fields are rejected.
+- Missing fields receive no credit rather than causing a crash.
+
+This prevents a submission from obtaining full evidence credit by including the required evidence alongside arbitrary unsupported IDs.
 
 ### B03 — Test the Hidden Bug
 
