@@ -177,13 +177,14 @@ For sequential maintenance tasks, report outcomes at each checkpoint and cumulat
 
 ## 9. Current implementation status
 
-This document specifies the target protocol. At the time of this protocol revision:
+The public repository now includes:
+- AICB-9 pilot tasks A01, B01, B03, and C01.
+- Deterministic structured-answer evaluators for A01/B01.
+- A local B03 mutation-testing development evaluator with public demonstration mutants.
+- A bounded C01 AgentRunner.
+- S0-S3 strategy adapters and a generic benchmark runner/report schema.
+- A local deterministic `evaluate` mode that does not require a model API.
 
-- AICB-9 includes A01, B01, B03, and C01 pilot tasks.
-- A01/B01 have deterministic structured-answer evaluators.
-- B03 has a local mutation-testing development evaluator and public demonstration mutants.
-- C01 has a bounded local Agent prototype and mock-based tests.
-- A unified benchmark runner and complete S0-S3 adapters are not yet implemented.
-- C01's declared hidden-test scoring component is not available in the public/local evaluator.
+Task/strategy applicability is narrower than adapter availability: A01/B01 support S0/S1/S2, C01 supports S3, and B03 is not yet enabled in the generic runner. C01's declared hidden-test scoring component is still unavailable in the public/local evaluator.
 
-Do not describe a strategy or metric as implemented until a runnable adapter and corresponding tests exist.
+Do not describe a task/strategy combination or metric as supported until the task registry, runnable adapter, evaluator, and tests all agree.
