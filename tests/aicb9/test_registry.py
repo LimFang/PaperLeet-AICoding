@@ -62,7 +62,7 @@ def test_v2_registry_has_four_current_tasks_with_explicit_status():
         "A01": "1.0.0",
         "B01": "1.1.0",
         "B03": "1.0.0",
-        "C01": "1.0.0",
+        "C01": "1.1.0",
     }
     assert all(task["schema_version"] == 2 for task in tasks)
     assert {task["id"]: task["strategies"]["supported"] for task in tasks} == {
