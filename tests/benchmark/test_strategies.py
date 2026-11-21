@@ -94,6 +94,11 @@ def test_s2_is_one_call_and_records_evidence_provenance(base_messages):
     assert result.strategy == "S2"
     assert result.api_calls == 1
     assert result.evidence_provenance == evidence.provenance
+    import hashlib
+    assert result.metadata["evidence_digest"] == (
+        "sha256:" + hashlib.sha256(evidence.content.encode("utf-8")).hexdigest()
+    )
+    assert result.metadata["evidence_characters"] == len(evidence.content)
 
 
 def test_s2_requires_evidence_and_rejects_method_steps(base_messages):
