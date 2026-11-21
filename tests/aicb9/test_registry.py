@@ -58,7 +58,12 @@ def test_v2_registry_has_four_current_tasks_with_explicit_status():
     tasks = load_registry()
     assert [task["id"] for task in tasks] == ["A01", "B01", "B03", "C01"]
     assert all(task["task_version"] == "1.0.0" for task in tasks)
-    assert all(task["rubric_version"] == "1.0.0" for task in tasks)
+    assert {task["id"]: task["rubric_version"] for task in tasks} == {
+        "A01": "1.0.0",
+        "B01": "1.1.0",
+        "B03": "1.0.0",
+        "C01": "1.0.0",
+    }
     assert all(task["schema_version"] == 2 for task in tasks)
     assert {task["id"]: task["strategies"]["supported"] for task in tasks} == {
         "A01": ["S0", "S1", "S2"],
