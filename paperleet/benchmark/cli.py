@@ -152,7 +152,7 @@ def main(argv=None, *, client_factory=OpenAICompatibleClient, registry_loader=lo
     parser = argparse.ArgumentParser(prog="paperleet-benchmark")
     commands = parser.add_subparsers(dest="command", required=True)
     evaluate = commands.add_parser("evaluate", help="score an existing structured answer locally; no model API required")
-    evaluate.add_argument("--task", required=True, choices=("A01", "B01"))
+    evaluate.add_argument("--task", required=True, choices=("A01", "B01", "C01"))
     evaluate.add_argument("--answer", required=True, type=Path)
     evaluate.add_argument("--output", type=Path, help="write the JSON report to this path instead of stdout")
 
