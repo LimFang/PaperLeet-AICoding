@@ -73,7 +73,8 @@ def build_run_report(
         if isinstance(candidate, Mapping):
             agent_budget = candidate
     task_budget = dict(task.get("budget_limits") or {})
-    task_budget.setdefault("max_output_tokens", request.max_output_tokens)
+    if metadata.get("provider") != "local":
+        task_budget.setdefault("max_output_tokens", request.max_output_tokens)
     manifest = {
         "run_id": str(uuid.uuid4()),
         "created_at": started_at,
@@ -97,7 +98,10 @@ def build_run_report(
         "tool_schema_hash": strategy_result.metadata.get("tool_schema_hash"),
         "seed": seed,
         "seed_applied": False,
-        "model_parameters": {"max_output_tokens": request.max_output_tokens},
+        "model_parameters": (
+            {"max_output_tokens": request.max_output_tokens}
+            if metadata.get("provider") != "local" else {}
+        ),
         "budget_limits": task_budget,
         "usage": {
             "input_tokens": usage.get("input_tokens"),
