@@ -311,5 +311,6 @@ def test_budget_accounts_for_estimated_output_when_provider_omits_usage():
     budget = Budget(max_output_tokens=100)
     budget.reserve_request(10, 50)
     budget.add_usage({}, estimated_output_tokens=80)
+    assert budget.reserve_request(10, 50) == 20
     with pytest.raises(BudgetExceeded, match="estimated output-token budget exceeded"):
-        budget.reserve_request(10, 50)
+        budget.add_usage({}, estimated_output_tokens=30)
