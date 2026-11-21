@@ -50,17 +50,32 @@ cd PaperLeet-AICoding
 python3 -m venv .venv
 source .venv/bin/activate
 
+# 完整 Web 与算法开发（包含 Torch/NumPy）：
 # Linux 可选：在项目依赖之前安装 CPU-only PyTorch。
 # python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-python -m pip install -e .
+python -m pip install -e ".[dev]"
 npm --prefix web ci
 make dev
 ```
 
 `make dev` 启动后，打开 **http://127.0.0.1:5173**。这条命令会导出题库，并启动前端与监听 `127.0.0.1:8765` 的本机 Python 判题服务。按 Ctrl-C 可同时停止两项服务。下次使用时激活虚拟环境，再运行 `make dev`。
 
-只使用命令行做题时，安装 Python 依赖即可，跳过 npm 和 `make dev`。
+只使用命令行做题时，可以跳过 npm 和 `make dev`，按需求安装对应的 Python 可选依赖：
+
+```bash
+# 仅运行 AICB-9 评测：无需 Torch、NumPy 或 Node.js。
+python -m pip install -e ".[aicb9]"
+make check-aicb9
+
+# 继承的 PaperLeet 算法基础题：安装 Torch/NumPy。
+python -m pip install -e ".[algorithms]"
+
+# 整个仓库的开发、测试与 Web 配套环境。
+python -m pip install -e ".[dev]"
+```
+
+各环境均包含基础依赖 PyYAML。AICB-9 的 B03/C01 需要执行本地 pytest，所以 `[aicb9]` 包含 pytest 与 pytest-timeout；只装这些依赖不意味着具备执行不可信代码的安全沙箱。
 
 ## 第一道练习
 
