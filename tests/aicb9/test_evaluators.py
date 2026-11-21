@@ -23,8 +23,15 @@ def test_a01_reference_trace_scores_full_marks():
 
 
 def test_a01_missing_result_does_not_match_explicit_null():
-    report = evaluate_a01({"steps": [{"step": 1}]})
-    assert report["score"] == 0
+    missing = evaluate_a01({"steps": [{"step": 1}]})
+    explicit_null = evaluate_a01({"steps": [{"step": 1, "result": None}]})
+    assert missing["score"] < explicit_null["score"]
+    missing_step = missing["details"]["result"]["mismatches"][0]
+    assert missing_step["step"] == 1
+    assert missing_step["present"] is False
+    assert not any(
+        item["step"] == 1 for item in explicit_null["details"]["result"]["mismatches"]
+    )
 
 
 def test_b01_reference_diagnosis_scores_full_marks():
@@ -149,8 +156,14 @@ def test_b01_unsupported_evidence_reduces_precision_and_f1():
 
 def test_b01_missing_fields_receive_partial_credit():
     report = evaluate_b01({"root_cause_id": "round_unit_price_before_quantity"})
+    explicit_empty = evaluate_b01({
+        "root_cause_id": "round_unit_price_before_quantity",
+        "evidence_ids": [],
+    })
     assert report["score"] < 100
     assert report["details"]["evidence"]["recall"] == 0.0
+    assert report["details"]["evidence"]["present"] is False
+    assert explicit_empty["details"]["evidence"]["present"] is True
 
 def test_a01_preserves_the_existing_80_point_pass_threshold():
     reference = json.loads((task_root() / "A01" / "reference_trace.json").read_text())
