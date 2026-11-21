@@ -186,3 +186,16 @@ def test_all_adapters_implement_the_common_strategy_protocol(base_messages):
         AgenticStrategy(FakeRunner()),
     ]
     assert all(isinstance(adapter, BenchmarkStrategy) for adapter in adapters)
+
+@pytest.mark.parametrize("strategy,kwargs", [
+    (BlackBoxSinglePrompt, {}),
+    (WhiteBoxSinglePrompt, {"method_steps": "inspect the state transition"}),
+    (ToolAugmentedSinglePrompt, {"evidence": EvidenceBundle("precomputed evidence")}),
+])
+def test_single_prompt_strategies_reject_tool_interaction_history(strategy, kwargs):
+    messages = [
+        {"role": "user", "content": "inspect"},
+        {"role": "tool", "tool_call_id": "call-1", "content": "file contents"},
+    ]
+    with pytest.raises(ValueError, match="tool interaction history"):
+        strategy(FakeClient()).run(StrategyRequest(messages=messages, **kwargs))
